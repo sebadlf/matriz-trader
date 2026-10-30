@@ -5,9 +5,10 @@
   "phase": "done",
   "path": "/Users/sebadlf/development/matriz-trader/.octo/specs/initial-setup",
   "createdAt": "2026-10-30T20:37:00.268Z",
-  "updatedAt": "2026-10-30T23:22:36.009Z",
+  "updatedAt": "2026-10-30T23:22:50.027Z",
   "brief": "Initial setup",
-  "committedAt": "2026-10-30T23:22:36.007Z",
-  "lastCommitHash": "55cf529c7a42",
-  "lastCommitPushed": false
+  "committedAt": "2026-10-30T23:22:45.985Z",
+  "lastCommitHash": "3e5036eeb9f7",
+  "lastCommitPushed": false,
+  "branch": "feat/initial-setup"
 }
