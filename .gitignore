@@ -1,0 +1,24 @@
+# Entorno (AC-27): solo se versiona .env.example
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Node / frontend
+node_modules/
+dist/
+frontend/src/api/generated/
+
+# Playwright
+test-results/
+playwright-report/
+
+# Sistema / editores
+.DS_Store

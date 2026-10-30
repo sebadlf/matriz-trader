@@ -1,0 +1,19 @@
+# Secretos: las variables llegan por `env_file` de Compose (AC-44)
+.env
+.env.*
+!.env.example
+
+.git
+.octo
+.claude
+.vscode
+
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/node_modules
+**/dist
+frontend/src/api/generated
+**/test-results
+**/playwright-report

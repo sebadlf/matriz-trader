@@ -1,0 +1,43 @@
+[project]
+name = "matriz-trader"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = ["matriz-model", "matriz-backend", "matriz-worker", "matriz-e2e"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14",
+    "pyright>=1.1.400",
+    "pytest>=8.4",
+    "pytest-asyncio>=1.2",
+    "httpx2>=2.16.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["model", "backend", "worker", "e2e"]
+
+[tool.uv.sources]
+matriz-model = { workspace = true }
+matriz-backend = { workspace = true }
+matriz-worker = { workspace = true }
+matriz-e2e = { workspace = true }
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+extend-exclude = ["frontend", ".octo"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "UP", "B", "SIM", "RUF", "ASYNC", "PT"]
+
+[tool.pyright]
+include = ["model", "backend", "worker", "e2e"]
+exclude = ["**/.venv", "**/__pycache__"]
+typeCheckingMode = "strict"
+pythonVersion = "3.13"
+venvPath = "."
+venv = ".venv"
+stubPath = "stubs"
