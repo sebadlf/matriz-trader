@@ -4,7 +4,7 @@
 
 - `frontend/` — Vite + React + TS + antd + Orval/react-query (npm, aislado). Ver `frontend/CLAUDE.md`.
 - `backend/` — FastAPI (`GET /health`). Ver `backend/CLAUDE.md`.
-- `worker/` — proceso long-running con `matriz-client`. Ver `worker/CLAUDE.md`.
+- `worker/` — proceso long-running con `matriz-client` (autenticación) y `market-data-client` (market data). Ver `worker/CLAUDE.md`.
 - `model/` — base SQLAlchemy 2, engine/sesión y Alembic compartidos. Ver `model/CLAUDE.md`.
 - `e2e/` — Playwright (Python) contra el stack levantado. Ver `e2e/CLAUDE.md`.
 - `scripts/check.sh` — gate de calidad completo; `scripts/check-versions.sh` — versiones de Python/Node.
@@ -20,6 +20,7 @@
 - SQLAlchemy solo con `DeclarativeBase`, `Mapped[]` y `mapped_column()`, sin plugins.
 - Pyright strict sin `# type: ignore` globales; los ignores van puntuales y con regla (`# pyright: ignore[reportCallIssue]` al instanciar settings de pydantic-settings).
 - `frontend/openapi.json` es el contrato versionado; se regenera con `uv run python -m backend.export_openapi`, nunca a mano.
+- El market data se obtiene siempre con `market-data-client`; nunca con `matriz-client`. Único punto de acceso: `worker/src/worker/market_data_gateway.py` (ningún otro módulo importa `market_data_client`).
 
 ## Comandos (desde la raíz)
 

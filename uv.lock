@@ -245,6 +245,16 @@ wheels = [
 ]
 
 [[package]]
+name = "market-data-client"
+version = "0.7.1"
+source = { git = "https://github.com/gravity-quant/market-libs.git?subdirectory=packages%2Fmarket-data-client&rev=market-data-client-v0.7.1#3bff927ea1e98dfb353af0f84ef8770a5f7c1039" }
+dependencies = [
+    { name = "httpx" },
+    { name = "python-dotenv" },
+    { name = "tenacity" },
+]
+
+[[package]]
 name = "markupsafe"
 version = "3.0.4"
 source = { registry = "https://pypi.org/simple" }
@@ -395,6 +405,7 @@ version = "0.1.0"
 source = { editable = "worker" }
 dependencies = [
     { name = "httpx" },
+    { name = "market-data-client" },
     { name = "matriz-client" },
     { name = "matriz-model" },
     { name = "pydantic-settings" },
@@ -403,6 +414,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "httpx", specifier = ">=0.27" },
+    { name = "market-data-client", git = "https://github.com/gravity-quant/market-libs.git?subdirectory=packages%2Fmarket-data-client&rev=market-data-client-v0.7.1" },
     { name = "matriz-client", url = "https://github.com/gravity-quant/market-libs/releases/download/matriz-client-v0.3.0/matriz_client-0.3.0-py3-none-any.whl" },
     { name = "matriz-model", editable = "model" },
     { name = "pydantic-settings", specifier = ">=2.4" },

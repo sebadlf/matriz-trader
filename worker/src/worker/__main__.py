@@ -8,6 +8,7 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from model import missing_env_vars, root_env_file
+from worker.market_data_gateway import MarketDataClientGateway
 from worker.matriz_gateway import MatrizClientGateway
 from worker.runner import serve
 from worker.settings import WorkerSettings
@@ -33,7 +34,9 @@ def main(env_file: Path | None = ENV_FILE) -> int:
             logger.error("Invalid worker configuration: %s", exc)
         return 2
     logging.getLogger().setLevel(settings.log_level)
-    return asyncio.run(serve(MatrizClientGateway(settings), settings))
+    return asyncio.run(
+        serve(MatrizClientGateway(settings), MarketDataClientGateway(settings), settings)
+    )
 
 
 if __name__ == "__main__":

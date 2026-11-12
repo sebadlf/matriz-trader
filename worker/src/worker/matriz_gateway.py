@@ -1,6 +1,7 @@
-"""Adaptador tipado sobre `matriz-client` (AC-17).
+"""Adaptador tipado sobre `matriz-client` (autenticación/conexión).
 
-Es el único módulo que importa `matriz_client`.
+Es el único módulo que importa `matriz_client`. No usar para market data:
+ver `worker.market_data_gateway`.
 """
 
 from typing import Protocol
