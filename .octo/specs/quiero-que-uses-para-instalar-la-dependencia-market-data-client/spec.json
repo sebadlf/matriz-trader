@@ -5,9 +5,9 @@
   "phase": "done",
   "path": "/Users/sebadlf/development/matriz-trader/.octo/specs/quiero-que-uses-para-instalar-la-dependencia-market-data-client",
   "createdAt": "2026-11-12T22:21:27.951Z",
-  "updatedAt": "2026-11-12T23:07:22.560Z",
+  "updatedAt": "2026-11-12T23:07:30.040Z",
   "brief": "Quiero que uses para instalar la dependencia market-data-client el comando uv add `\"market-data-client @ git+https://github.com/<org>/market-data-client.git\"`. Luego quiero que configures el proyecto para poder utilizar la lib correctamente y actualices el proyecto para tal fin. Ten en cuenta que para obtener market data siempre lo haremos usando esta lib en lugar de matriz-client. Deja esta desicion bien asentada en CLAUDE.md",
-  "committedAt": "2026-11-12T23:07:22.560Z",
-  "lastCommitHash": "d26c349bddb2",
+  "committedAt": "2026-11-12T23:07:30.040Z",
+  "lastCommitHash": "0839e2327caa",
   "lastCommitPushed": false
 }
