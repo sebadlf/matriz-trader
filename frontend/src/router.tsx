@@ -1,4 +1,4 @@
 import { createBrowserRouter } from 'react-router';
-import { HealthPage } from './pages/HealthPage';
+import { routes } from './routes';
 
-export const router = createBrowserRouter([{ path: '/', element: <HealthPage /> }]);
+export const router = createBrowserRouter(routes);

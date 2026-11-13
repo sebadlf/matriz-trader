@@ -6,7 +6,20 @@ SPA Vite + React 19 + TypeScript strict, React Router 8 (modo data), Ant Design 
 
 - `openapi.json` — contrato versionado, exportado del backend. No editar ni formatear a mano (Biome lo excluye).
 - `orval.config.ts` — genera `src/api/generated/` (ignorado por git) con el mutator `src/api/http.ts` (`customFetch`, `ApiError`, timeout 5 s).
-- `src/pages/HealthPage.tsx` — página `/`; los `data-testid` (`health-loading`, `health-status`, `health-database`, `health-error`) son contrato de los tests unitarios y de `e2e`.
+- `src/routes.tsx` — tabla de rutas única (`RouteObject[]`), compartida por `src/router.tsx` (`createBrowserRouter`) y los tests (`createMemoryRouter`). Ruta layout sin `path` (`AppLayout`) con hijas `/orders` (`OrdersPage`), `/strategies` (`StrategiesPage`) y `/health` (`HealthPage`); `/` y cualquier ruta desconocida → `<Navigate to="/orders" replace />`.
+- `src/layout/AppLayout.tsx` — `Layout` de antd: `Sider` con el logo «Matriz Trader» (`<Link to="/orders">`) y un `Menu` inline con tres ítems `<Link>` (Órdenes, Estrategias, Estado); `selectedKeys` se deriva de `useLocation().pathname`; el contenido va en `<Outlet />`. Las páginas no deben envolverse en otro `Layout`.
+- `src/pages/` — `OrdersPage` y `StrategiesPage` (cáscaras, sin llamadas a la API) y `HealthPage` (`/health`, estado del backend y la BD).
+
+### Contrato de `data-testid` (tests unitarios y `e2e`)
+
+| `data-testid`                                                        | Elemento                              | Archivo                        |
+| -------------------------------------------------------------------- | ------------------------------------- | ------------------------------ |
+| `app-logo`                                                           | `<Link to="/orders">` «Matriz Trader» | `src/layout/AppLayout.tsx`     |
+| `app-menu`                                                           | `Menu` lateral                        | `src/layout/AppLayout.tsx`     |
+| `menu-orders` / `menu-strategies` / `menu-health`                    | `<Link>` de cada ítem del menú        | `src/layout/AppLayout.tsx`     |
+| `page-ordenes`                                                       | título «Órdenes»                      | `src/pages/OrdersPage.tsx`     |
+| `page-estrategias`                                                   | título «Estrategias»                  | `src/pages/StrategiesPage.tsx` |
+| `health-loading`, `health-status`, `health-database`, `health-error` | estados de `HealthPage`               | `src/pages/HealthPage.tsx`     |
 - `vite.config.ts` — `envDir: '..'` (lee el `.env` raíz), puerto `FRONTEND_DEV_PORT`, config de Vitest.
 - `nginx.conf` + `Dockerfile` — producción: build estático con `VITE_API_BASE_URL=/api` y proxy `/api/` → backend.
 

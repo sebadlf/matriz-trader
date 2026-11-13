@@ -1,4 +1,4 @@
-import { Alert, Descriptions, Layout, Spin, Tag, Typography } from 'antd';
+import { Alert, Descriptions, Spin, Tag, Typography } from 'antd';
 import { type getHealthResponse, useGetHealth } from '../api/generated/matriz';
 import { ApiError } from '../api/http';
 
@@ -57,11 +57,9 @@ function HealthContent() {
 
 export function HealthPage() {
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Layout.Content style={{ padding: 24 }}>
-        <Typography.Title level={2}>Matriz Trader</Typography.Title>
-        <HealthContent />
-      </Layout.Content>
-    </Layout>
+    <>
+      <Typography.Title level={2}>Estado</Typography.Title>
+      <HealthContent />
+    </>
   );
 }
