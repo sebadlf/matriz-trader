@@ -1,0 +1,11 @@
+{
+  "id": "quiero-que-crees-un-layout-simple-en-el",
+  "name": "Quiero que crees un layout simple en el",
+  "kind": "feature",
+  "phase": "done",
+  "path": "/Users/sebadlf/development/matriz-trader/.octo/specs/quiero-que-crees-un-layout-simple-en-el",
+  "createdAt": "2026-11-13T00:43:03.925Z",
+  "updatedAt": "2026-11-13T01:04:41.303Z",
+  "brief": "Quiero que crees un layout simple en el frontend. Logo, menu lateral y navegacion. Para una pequeña app de trading. Inicialmente solo tendra dos secciones, Ordenes y Estrategias. Por el momento solo quiero que las secciones sean una cascara vacia pero quiero que la navegacion entre secciones ande usando react-router.",
+  "branch": "feat/quiero-que-crees-un-layout-simple-en-el"
+}
