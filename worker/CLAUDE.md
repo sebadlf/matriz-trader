@@ -1,8 +1,8 @@
 # CLAUDE.md — worker
 
-Proceso long-running (`matriz-worker`, paquete `worker`) que inicializa `matriz-client` 0.3.0 y `market-data-client` 0.7.1, y queda vivo hasta SIGINT/SIGTERM.
+Proceso long-running (`matriz-worker`, paquete `worker`) que hace login en Matriz (vía `matriz-broker`) e inicializa `market-data-client` 0.7.1, y queda vivo hasta SIGINT/SIGTERM.
 
-- `matriz-client` — solo autenticación/conexión contra Matriz. Viene del wheel de GitHub Releases declarado en `[tool.uv.sources]` de `pyproject.toml`. **No se usa para market data.**
+- `matriz-broker` — dueño de `matriz-client` 0.3.0 (el worker **no** lo declara). El worker solo usa `MatrizClientGateway`/`MatrizCredentials` de `broker.matriz_gateway` para autenticarse. **No se usa para market data.** Ver `broker/CLAUDE.md`.
 - `market-data-client` — única fuente de market data. Viene de Git: monorepo público `gravity-quant/market-libs`, `subdirectory = "packages/market-data-client"`, ref en el tag `market-data-client-v0.7.1`; `uv.lock` fija el SHA del commit. Módulo importable: `market_data_client` (publica `py.typed`, no necesita stubs).
 
 **Regla:** el market data se obtiene siempre con `market-data-client`; nunca con `matriz-client`. Único punto de acceso: `src/worker/market_data_gateway.py` (ningún otro módulo importa `market_data_client`).
@@ -27,10 +27,10 @@ uv add --package matriz-worker \
 ## Archivos clave
 
 - `src/worker/settings.py` — `WorkerSettings`: `MATRIZ_BASE_URL`, `MATRIZ_USERNAME`, `MATRIZ_PASSWORD`, `MARKET_DATA_CLIENT_ID`, `MARKET_DATA_CLIENT_SECRET`, `MARKET_DATA_AUDIENCE`, `MARKET_DATA_AUTH0_TOKEN_URL` (obligatorias); `MARKET_DATA_BASE_URL` (default: API de develop), `WORKER_HEARTBEAT_SECONDS`, `LOG_LEVEL`.
-- `src/worker/matriz_gateway.py` — único módulo que importa `matriz_client`. `connect()` llama a `Client.login()` y traduce los errores a `GatewayError`. Solo autenticación/conexión, no market data.
+- `broker/src/broker/matriz_gateway.py` (paquete `broker`, fuera del worker) — único módulo del repo que importa `matriz_client`. El worker usa su `Protocol` `MatrizGateway` (`connect`/`close`): `connect()` llama a `Client.login()` y traduce los errores a `GatewayError`.
 - `src/worker/market_data_gateway.py` — único módulo que importa `market_data_client`. Expone el `Protocol` `MarketDataGateway` (`connect`, `get_quote`, `close`), el tipo propio `Quote` y `MarketDataClientGateway`; traduce los errores de la librería a `MarketDataGatewayError`. `connect()` llama a `get_health()`, que es anónimo: valida conectividad y URL, no las credenciales Auth0.
 - `src/worker/runner.py` — `run()` (connect Matriz → connect market data → loop de heartbeat → close de ambos) y `serve()` (handlers de señales).
-- `src/worker/__main__.py` — `main(env_file)`: código 2 si falta configuración (incluidas las `MARKET_DATA_*` obligatorias), 1 si falla la conexión a Matriz o a market data, 0 al detenerse.
+- `src/worker/__main__.py` — `main(env_file)`: arma `MatrizClientGateway(MatrizCredentials(...))` desde `WorkerSettings`; código 2 si falta configuración (incluidas las `MARKET_DATA_*` obligatorias), 1 si falla la conexión a Matriz o a market data, 0 al detenerse.
 
 ## Comandos
 

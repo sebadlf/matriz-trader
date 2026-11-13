@@ -3,24 +3,27 @@
 ## Estructura
 
 - `frontend/` — Vite + React + TS + antd + Orval/react-query (npm, aislado). Ver `frontend/CLAUDE.md`.
-- `backend/` — FastAPI (`GET /health`). Ver `backend/CLAUDE.md`.
-- `worker/` — proceso long-running con `matriz-client` (autenticación) y `market-data-client` (market data). Ver `worker/CLAUDE.md`.
+- `backend/` — FastAPI (`GET /health`, `/accounts`, `/instruments`, `/orders`, `/orders/cancel`). Ver `backend/CLAUDE.md`.
+- `worker/` — proceso long-running: login en Matriz (vía `broker`) y `market-data-client` (market data). Ver `worker/CLAUDE.md`.
+- `broker/` — `matriz-broker`: único dueño de `matriz-client` (sesión y órdenes contra Matriz), usado por `backend` y `worker`. Ver `broker/CLAUDE.md`.
 - `model/` — base SQLAlchemy 2, engine/sesión y Alembic compartidos. Ver `model/CLAUDE.md`.
 - `e2e/` — Playwright (Python) contra el stack levantado. Ver `e2e/CLAUDE.md`.
 - `scripts/check.sh` — gate de calidad completo; `scripts/check-versions.sh` — versiones de Python/Node.
 - `docker-compose.yml` — modo producción (`postgres`, `backend`, `worker`, `frontend` con nginx).
 - `.octo/specs/` — specs y planes; no es código.
 
-`model`, `backend`, `worker` y `e2e` forman un único workspace `uv` (`pyproject.toml` raíz, un solo `uv.lock`). Ruff y Pyright strict se configuran solo en el `pyproject.toml` raíz.
+`model`, `broker`, `backend`, `worker` y `e2e` forman un único workspace `uv` (`pyproject.toml` raíz, un solo `uv.lock`). Ruff y Pyright strict se configuran solo en el `pyproject.toml` raíz.
 
 ## Convenciones
 
 - Un único `.env` en la raíz (plantilla: `.env.example`). Nunca crear `.env` por proyecto ni commitear secretos.
-- Paquetes Python con layout `src/`; distribución `matriz-<x>`, import corto (`import model`, `import backend`, `import worker`). Cada paquete tiene `py.typed`.
+- Paquetes Python con layout `src/`; distribución `matriz-<x>`, import corto (`import model`, `import broker`, `import backend`, `import worker`). Cada paquete tiene `py.typed`.
 - SQLAlchemy solo con `DeclarativeBase`, `Mapped[]` y `mapped_column()`, sin plugins.
 - Pyright strict sin `# type: ignore` globales; los ignores van puntuales y con regla (`# pyright: ignore[reportCallIssue]` al instanciar settings de pydantic-settings).
 - `frontend/openapi.json` es el contrato versionado; se regenera con `uv run python -m backend.export_openapi`, nunca a mano.
 - El market data se obtiene siempre con `market-data-client`; nunca con `matriz-client`. Único punto de acceso: `worker/src/worker/market_data_gateway.py` (ningún otro módulo importa `market_data_client`).
+- Matriz (login, órdenes, instrumentos) se accede siempre con `matriz-client`, declarado solo en `broker/pyproject.toml`. Único punto de acceso: `broker/src/broker/matriz_gateway.py` (ningún otro módulo importa `matriz_client`).
+- Las cuentas operables salen de `MATRIZ_ACCOUNTS` en el `.env` raíz (lista separada por comas, la lee el backend); no hay tabla de cuentas.
 
 ## Credenciales de Postgres y el volumen `pgdata`
 

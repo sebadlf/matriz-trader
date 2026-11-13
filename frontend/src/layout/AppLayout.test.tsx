@@ -100,13 +100,16 @@ describe('AppLayout', () => {
     expect(router.state.location.pathname).toBe('/orders');
   });
 
-  it.each([
-    ['/orders', 'page-ordenes', 'Órdenes'],
-    ['/strategies', 'page-estrategias', 'Estrategias'],
-  ])('%s muestra su título sin llamar al backend', async (path, testId, title) => {
-    renderAt(path);
+  it('/orders muestra su título', async () => {
+    renderAt('/orders');
 
-    expect(await screen.findByTestId(testId)).toHaveTextContent(title);
+    expect(await screen.findByTestId('page-ordenes')).toHaveTextContent('Órdenes');
+  });
+
+  it('/strategies muestra su título sin llamar al backend', async () => {
+    renderAt('/strategies');
+
+    expect(await screen.findByTestId('page-estrategias')).toHaveTextContent('Estrategias');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

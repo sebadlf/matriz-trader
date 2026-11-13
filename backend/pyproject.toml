@@ -4,6 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "matriz-model",
+    "matriz-broker",
     "fastapi>=0.115",
     "uvicorn[standard]>=0.32",
     "pydantic-settings>=2.4",
@@ -18,7 +19,9 @@ packages = ["src/backend"]
 
 [tool.uv.sources]
 matriz-model = { workspace = true }
+matriz-broker = { workspace = true }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--import-mode=importlib"
+pythonpath = ["tests"]   # helpers compartidos de tests (`fake_trading`)

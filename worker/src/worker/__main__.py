@@ -5,11 +5,11 @@ import logging
 import sys
 from pathlib import Path
 
+from broker.matriz_gateway import MatrizClientGateway, MatrizCredentials
 from pydantic import ValidationError
 
 from model import missing_env_vars, root_env_file
 from worker.market_data_gateway import MarketDataClientGateway
-from worker.matriz_gateway import MatrizClientGateway
 from worker.runner import serve
 from worker.settings import WorkerSettings
 
@@ -34,8 +34,13 @@ def main(env_file: Path | None = ENV_FILE) -> int:
             logger.error("Invalid worker configuration: %s", exc)
         return 2
     logging.getLogger().setLevel(settings.log_level)
+    credentials = MatrizCredentials(
+        base_url=settings.matriz_base_url,
+        username=settings.matriz_username,
+        password=settings.matriz_password.get_secret_value(),
+    )
     return asyncio.run(
-        serve(MatrizClientGateway(settings), MarketDataClientGateway(settings), settings)
+        serve(MatrizClientGateway(credentials), MarketDataClientGateway(settings), settings)
     )
 
 

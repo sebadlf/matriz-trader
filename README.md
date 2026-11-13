@@ -1,16 +1,17 @@
 # Matriz Trader
 
-Monorepo con cuatro proyectos y una suite de integración, conectados de punta a punta por `GET /health`:
+Monorepo con cinco proyectos y una suite de integración, conectados de punta a punta por `GET /health`:
 
 | Directorio | Qué es | Stack |
 |------------|--------|-------|
-| `frontend/` | SPA que muestra el estado del backend | Vite, React, React Router, TypeScript, Orval (react-query), Ant Design, ESLint, Biome, Vitest |
-| `backend/` | API HTTP (`GET /health`, `GET /openapi.json`) | FastAPI, uvicorn |
-| `worker/` | Proceso long-running que inicializa `matriz-client` | asyncio, `matriz-client` 0.3.0 |
+| `frontend/` | SPA: estado del backend y pantalla `/orders` (listar, crear y cancelar órdenes) | Vite, React, React Router, TypeScript, Orval (react-query), Ant Design, ESLint, Biome, Vitest |
+| `backend/` | API HTTP (`GET /health`, `GET /accounts`, `GET /instruments`, `GET`/`POST /orders`, `POST /orders/cancel`, `GET /openapi.json`) | FastAPI, uvicorn |
+| `worker/` | Proceso long-running que hace login en Matriz y conecta market data | asyncio, `market-data-client` |
+| `broker/` | Único acceso a Matriz (`broker/src/broker/matriz_gateway.py`), compartido por `backend` y `worker` | `matriz-client` 0.3.0 |
 | `model/` | Base de SQLAlchemy 2, engine/sesión y Alembic, compartidos por `backend` y `worker` | SQLAlchemy 2, psycopg 3, Alembic |
 | `e2e/` | Tests de integración contra el sistema levantado | pytest, Playwright (Python) |
 
-`model`, `backend`, `worker` y `e2e` son miembros de un único workspace `uv` (un solo `uv.lock` en la raíz). `frontend` es un proyecto npm aislado (`frontend/package-lock.json`). Para VS Code, abrir `matriz-trader.code-workspace`.
+`model`, `broker`, `backend`, `worker` y `e2e` son miembros de un único workspace `uv` (un solo `uv.lock` en la raíz). `frontend` es un proyecto npm aislado (`frontend/package-lock.json`). Para VS Code, abrir `matriz-trader.code-workspace`.
 
 ## Prerrequisitos
 
@@ -18,15 +19,15 @@ Monorepo con cuatro proyectos y una suite de integración, conectados de punta a
 - Node 24 (`.nvmrc`). Con nvm: `nvm use`.
 - Docker con Docker Compose v2.
 
-`matriz-client` se descarga del wheel público de GitHub Releases (`gravity-quant/market-libs`), declarado en `worker/pyproject.toml`; no hace falta token.
+`matriz-client` se descarga del wheel público de GitHub Releases (`gravity-quant/market-libs`), declarado solo en `broker/pyproject.toml`; no hace falta token.
 
 ## Setup
 
 Todos los comandos se ejecutan desde la raíz del repo salvo que se indique otra cosa.
 
 ```bash
-cp .env.example .env                    # único .env del monorepo; completar MATRIZ_USERNAME / MATRIZ_PASSWORD
-uv sync                                 # instala model, backend, worker, e2e y las herramientas de dev
+cp .env.example .env                    # único .env del monorepo; completar MATRIZ_USERNAME / MATRIZ_PASSWORD / MATRIZ_ACCOUNTS
+uv sync                                 # instala model, broker, backend, worker, e2e y las herramientas de dev
 cd frontend && npm ci --include=dev && cd ..
 ```
 
@@ -44,7 +45,8 @@ uv run python -m worker                                        # worker (Ctrl+C 
 cd frontend && npm run dev                                     # frontend con HMR → http://localhost:5173
 ```
 
-- El backend necesita `DATABASE_URL`; sin ella sale con código 2 y nombra la variable faltante. CORS acepta los orígenes de `CORS_ORIGINS`.
+- El backend necesita `DATABASE_URL`; sin ella sale con código 2 y nombra la variable faltante. CORS acepta los orígenes de `CORS_ORIGINS` (métodos `GET` y `POST`).
+- Las `MATRIZ_*` son opcionales en el backend: sin `MATRIZ_USERNAME`/`MATRIZ_PASSWORD`, `/health` responde igual y los endpoints de órdenes devuelven 503. El login es diferido (primer request). Las cuentas del selector salen de `MATRIZ_ACCOUNTS` (separadas por coma).
 - El worker se conecta de verdad a Matriz al arrancar (`MATRIZ_BASE_URL`, `MATRIZ_USERNAME`, `MATRIZ_PASSWORD`). Si faltan variables sale con código 2; si el login falla (por ejemplo con las credenciales `changeme` del ejemplo) sale con código 1.
 - El frontend llama a `VITE_API_BASE_URL` y regenera el cliente Orval desde `frontend/openapi.json` antes de `dev`, `build`, `typecheck` y `test`.
 
@@ -69,7 +71,7 @@ nginx sirve el build estático del frontend y hace proxy de `/api/` al backend, 
 ## Tests y calidad
 
 ```bash
-scripts/check.sh                 # todos los gates: versiones, ruff, pyright, pytest (model/backend/worker) y lint/format/typecheck/test del frontend
+scripts/check.sh                 # todos los gates: versiones, ruff, pyright, pytest (model/broker/backend/worker) y lint/format/typecheck/test del frontend
 ```
 
 Gates individuales:
@@ -78,7 +80,7 @@ Gates individuales:
 uv run ruff check .
 uv run ruff format --check .
 uv run pyright                                  # strict; correrlo sin argumentos (toma el include del pyproject)
-cd model && uv run pytest                       # ídem en backend/ y worker/
+cd model && uv run pytest                       # ídem en broker/, backend/ y worker/
 scripts/check-versions.sh                       # .python-version/.nvmrc vs Dockerfiles y engines.node
 cd frontend && npm run lint && npm run format:check && npm run typecheck && npm test
 ```

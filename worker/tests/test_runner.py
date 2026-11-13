@@ -8,9 +8,9 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
+from broker.matriz_gateway import GatewayError, MatrizClientGateway, MatrizCredentials
 from pydantic import SecretStr
 from worker.market_data_gateway import MarketDataGatewayError, Quote
-from worker.matriz_gateway import GatewayError, MatrizClientGateway
 from worker.runner import run, serve
 from worker.settings import WorkerSettings
 
@@ -154,7 +154,14 @@ async def test_signal_stops_with_zero(sig: signal.Signals) -> None:
 
 def test_client_gateway_wraps_library_errors() -> None:
     # Credenciales vacías: matriz-client lanza AuthenticationError antes de cualquier I/O.
-    gateway = MatrizClientGateway(make_settings(password=""))
+    settings = make_settings(password="")
+    gateway = MatrizClientGateway(
+        MatrizCredentials(
+            base_url=settings.matriz_base_url,
+            username=settings.matriz_username,
+            password=settings.matriz_password.get_secret_value(),
+        )
+    )
     try:
         with pytest.raises(GatewayError):
             gateway.connect()

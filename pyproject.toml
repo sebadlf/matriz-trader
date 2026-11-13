@@ -2,7 +2,7 @@
 name = "matriz-trader"
 version = "0.1.0"
 requires-python = ">=3.13,<3.14"
-dependencies = ["matriz-model", "matriz-backend", "matriz-worker", "matriz-e2e"]
+dependencies = ["matriz-model", "matriz-broker", "matriz-backend", "matriz-worker", "matriz-e2e"]
 
 [dependency-groups]
 dev = [
@@ -17,10 +17,11 @@ dev = [
 package = false
 
 [tool.uv.workspace]
-members = ["model", "backend", "worker", "e2e"]
+members = ["model", "broker", "backend", "worker", "e2e"]
 
 [tool.uv.sources]
 matriz-model = { workspace = true }
+matriz-broker = { workspace = true }
 matriz-backend = { workspace = true }
 matriz-worker = { workspace = true }
 matriz-e2e = { workspace = true }
@@ -34,7 +35,7 @@ extend-exclude = ["frontend", ".octo"]
 select = ["E", "W", "F", "I", "UP", "B", "SIM", "RUF", "ASYNC", "PT"]
 
 [tool.pyright]
-include = ["model", "backend", "worker", "e2e"]
+include = ["model", "broker", "backend", "worker", "e2e"]
 exclude = ["**/.venv", "**/__pycache__"]
 typeCheckingMode = "strict"
 pythonVersion = "3.13"
