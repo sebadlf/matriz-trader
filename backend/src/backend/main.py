@@ -5,10 +5,13 @@ import sys
 from functools import cache
 from typing import TextIO
 
+from broker.matriz_gateway import MatrizTrading
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend import health
+from backend import trading as trading_routes
+from backend.matriz import install_matriz
 from backend.settings import BackendSettings, load_settings
 from model import create_engine_from_url
 
@@ -28,19 +31,22 @@ def configure_logging(level: str) -> None:
         backend_logger.addHandler(handler)
 
 
-def create_app(settings: BackendSettings) -> FastAPI:
+def create_app(settings: BackendSettings, trading: MatrizTrading | None = None) -> FastAPI:
     app = FastAPI(title="Matriz Trader API", version="0.1.0")
     # El engine no conecta al crearse: el backend arranca aunque Postgres esté caído.
     app.state.engine = create_engine_from_url(settings.database_url)
     app.state.db_probe = health.DatabaseStatusTracker(app.state.engine)
+    # Tampoco hay login a Matriz al arrancar: es diferido al primer uso.
+    install_matriz(app, settings, trading)
     if settings.cors_origin_list:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=settings.cors_origin_list,
-            allow_methods=["GET"],
+            allow_methods=["GET", "POST"],  # EB-36: la cancelación también es POST
             allow_headers=["*"],
         )
     app.include_router(health.router)
+    app.include_router(trading_routes.router)
     return app
 
 

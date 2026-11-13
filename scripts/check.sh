@@ -27,7 +27,7 @@ run "versions" scripts/check-versions.sh
 run "ruff check" uv run ruff check .
 run "ruff format --check" uv run ruff format --check .
 run "pyright" uv run pyright
-for project in model backend worker; do
+for project in model broker backend worker; do
   run "pytest $project" bash -c "cd '$ROOT/$project' && uv run pytest"
 done
 

@@ -17,12 +17,14 @@ WORKDIR /app
 # Dependencias primero (capa cacheable): el lockfile necesita el pyproject de todos los miembros.
 COPY pyproject.toml uv.lock ./
 COPY model/pyproject.toml model/
+COPY broker/pyproject.toml broker/
 COPY backend/pyproject.toml backend/
 COPY worker/pyproject.toml worker/
 COPY e2e/pyproject.toml e2e/
 RUN uv sync --frozen --no-dev --package matriz-worker --no-install-workspace
 
 COPY model/ model/
+COPY broker/ broker/
 COPY worker/ worker/
 RUN uv sync --frozen --no-dev --package matriz-worker
 

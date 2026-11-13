@@ -5,8 +5,9 @@ import logging
 import signal
 from collections.abc import Callable
 
+from broker.matriz_gateway import GatewayError, MatrizGateway
+
 from worker.market_data_gateway import MarketDataGateway, MarketDataGatewayError
-from worker.matriz_gateway import GatewayError, MatrizGateway
 from worker.settings import WorkerSettings
 
 logger = logging.getLogger(__name__)

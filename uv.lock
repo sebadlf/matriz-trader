@@ -5,6 +5,7 @@ requires-python = "==3.13.*"
 [manifest]
 members = [
     "matriz-backend",
+    "matriz-broker",
     "matriz-e2e",
     "matriz-model",
     "matriz-trader",
@@ -288,6 +289,7 @@ version = "0.1.0"
 source = { editable = "backend" }
 dependencies = [
     { name = "fastapi" },
+    { name = "matriz-broker" },
     { name = "matriz-model" },
     { name = "pydantic-settings" },
     { name = "uvicorn", extra = ["standard"] },
@@ -296,9 +298,25 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
+    { name = "matriz-broker", editable = "broker" },
     { name = "matriz-model", editable = "model" },
     { name = "pydantic-settings", specifier = ">=2.4" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
+]
+
+[[package]]
+name = "matriz-broker"
+version = "0.1.0"
+source = { editable = "broker" }
+dependencies = [
+    { name = "httpx" },
+    { name = "matriz-client" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "matriz-client", url = "https://github.com/gravity-quant/market-libs/releases/download/matriz-client-v0.3.0/matriz_client-0.3.0-py3-none-any.whl" },
 ]
 
 [[package]]
@@ -368,6 +386,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "matriz-backend" },
+    { name = "matriz-broker" },
     { name = "matriz-e2e" },
     { name = "matriz-model" },
     { name = "matriz-worker" },
@@ -385,6 +404,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "matriz-backend", editable = "backend" },
+    { name = "matriz-broker", editable = "broker" },
     { name = "matriz-e2e", editable = "e2e" },
     { name = "matriz-model", editable = "model" },
     { name = "matriz-worker", editable = "worker" },
@@ -406,7 +426,7 @@ source = { editable = "worker" }
 dependencies = [
     { name = "httpx" },
     { name = "market-data-client" },
-    { name = "matriz-client" },
+    { name = "matriz-broker" },
     { name = "matriz-model" },
     { name = "pydantic-settings" },
 ]
@@ -415,7 +435,7 @@ dependencies = [
 requires-dist = [
     { name = "httpx", specifier = ">=0.27" },
     { name = "market-data-client", git = "https://github.com/gravity-quant/market-libs.git?subdirectory=packages%2Fmarket-data-client&rev=market-data-client-v0.7.1" },
-    { name = "matriz-client", url = "https://github.com/gravity-quant/market-libs/releases/download/matriz-client-v0.3.0/matriz_client-0.3.0-py3-none-any.whl" },
+    { name = "matriz-broker", editable = "broker" },
     { name = "matriz-model", editable = "model" },
     { name = "pydantic-settings", specifier = ">=2.4" },
 ]
