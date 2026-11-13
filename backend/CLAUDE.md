@@ -6,7 +6,7 @@ FastAPI (`matriz-backend`, paquete `backend`). Miembro del workspace `uv`; depen
 
 - `src/backend/settings.py` — `BackendSettings` (`DATABASE_URL` obligatoria, `CORS_ORIGINS`, `LOG_LEVEL`) y `load_settings()`, que sale con código 2 y `Missing required environment variables: ...` si falta alguna.
 - `src/backend/main.py` — `create_app(settings)`. `app` se construye al pedirlo (`__getattr__` de módulo), así que importar el módulo no exige `.env`.
-- `src/backend/health.py` — `GET /health` (`operation_id="getHealth"`): 200 `{"status":"ok","database":"ok"}` o 503 `{"status":"degraded","database":"unavailable"}`.
+- `src/backend/health.py` — `GET /health` (`operation_id="getHealth"`): 200 `{"status":"ok","database":"ok"}` o 503 `{"status":"degraded","database":"unavailable"}`. `DatabaseStatusTracker` loguea `ERROR` al pasar a unavailable (causa del driver, sin contraseña) e `INFO` al recuperarse; el cuerpo de la respuesta nunca incluye el error.
 - `src/backend/export_openapi.py` — escribe `frontend/openapi.json` sin levantar el servidor.
 
 ## Comandos

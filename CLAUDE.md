@@ -22,6 +22,25 @@
 - `frontend/openapi.json` es el contrato versionado; se regenera con `uv run python -m backend.export_openapi`, nunca a mano.
 - El market data se obtiene siempre con `market-data-client`; nunca con `matriz-client`. Único punto de acceso: `worker/src/worker/market_data_gateway.py` (ningún otro módulo importa `market_data_client`).
 
+## Credenciales de Postgres y el volumen `pgdata`
+
+`POSTGRES_USER`/`POSTGRES_PASSWORD` solo se aplican cuando el volumen `pgdata` está vacío. Cambiarlos
+en el `.env` después no modifica el rol existente: `pg_isready` sigue `healthy`, pero el backend recibe
+`password authentication failed for user "matriz"`, `/health` responde 503 y `docker compose up` aborta
+con `container matriz-trader-backend-1 is unhealthy`. El backend lo loguea (`Database unavailable: …`).
+
+Realinear conservando los datos (toma la contraseña nueva del entorno del contenedor):
+
+```bash
+docker compose up -d postgres            # recrea el contenedor con el .env actual
+docker compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v pw="$POSTGRES_PASSWORD" <<SQL
+ALTER ROLE CURRENT_USER WITH PASSWORD :'"'"'pw'"'"';
+SQL'
+docker compose up --build
+```
+
+Alternativa destructiva (⚠️ **borra todos los datos** de la base): `docker compose down -v && docker compose up --build`.
+
 ## Comandos (desde la raíz)
 
 ```bash
