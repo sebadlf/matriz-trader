@@ -1,0 +1,23 @@
+# --- Entorno: un único .env en la raíz, nunca versionado ---
+.env
+.env.*
+!.env.example
+
+# --- Python (backend/) ---
+.venv/
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# --- Node / frontend ---
+node_modules/
+dist/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# --- Sistema operativo / editores ---
+.DS_Store
+.claude/settings.local.json

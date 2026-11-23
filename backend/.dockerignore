@@ -1,0 +1,12 @@
+# Nunca enviar secretos ni artefactos locales al contexto de build (NFR-3)
+.env
+.env.*
+**/.env
+.venv
+**/__pycache__
+**/*.pyc
+.mypy_cache
+.ruff_cache
+.pytest_cache
+Dockerfile
+.dockerignore

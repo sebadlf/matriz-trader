@@ -1,0 +1,11 @@
+{
+  "id": "spec-format-audit",
+  "title": "Audit document format on advance",
+  "description": "When a phase is approved, check the documents against the format rules the app parses.",
+  "trigger": "spec-advance",
+  "enabled": false,
+  "blocking": false,
+  "actionType": "ask-claude",
+  "agent": "spec-doctor",
+  "instructions": "This spec just advanced a phase. Audit the documents it leaves behind against the format Octo parses, and fix only what is mechanical.\n\nRead the spec's requirements.md (or bugfix.md), plan.md and tasks.md. The **spec-requirements-format**, **spec-plan-format** and **spec-tasks-format** skills define the exact contract; apply them.\n\nFix in place, because these have exactly one correct answer:\n- criteria containing SHALL that carry no `AC-n` id, and user stories with no `US-n` id — number them in document order\n- task ids wrapped in emphasis (`- [ ] **T1**: …`), which the runner cannot parse\n- a missing `## Critical Decisions` heading at the end of plan.md\n- `## Tasks` demoted to H3, or wave headings promoted to H2, in plan.md\n- file references in the Affected files table that are not in backticks\n\nReport without changing, because these need judgement:\n- criteria that are not in one of the four EARS forms\n- criteria using untestable wording\n- criteria no task covers, and user stories no criterion answers\n- `## Critical Decisions` entries that contradict a section above them\n\nKeep your chat reply to two short lists: what you fixed, and what needs a decision. Change nothing else — this hook runs unattended."
+}

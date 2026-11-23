@@ -1,0 +1,11 @@
+{
+  "id": "docs-changelog",
+  "title": "Update CHANGELOG & docs",
+  "description": "When a spec reaches done, update the CHANGELOG and docs.",
+  "trigger": "spec-done",
+  "enabled": true,
+  "blocking": false,
+  "actionType": "ask-claude",
+  "agent": "spec-task-executor",
+  "instructions": "This spec just reached the 'done' phase.\n\n1. Read the spec's requirements.md / bugfix.md and plan.md.\n2. Prepend a dated entry to CHANGELOG.md at the repo root (create it with a \"Keep a Changelog\" header if missing), summarizing the user-facing change under Added / Changed / Fixed.\n3. Add or update a short section under docs/ (create docs/<spec-id>.md if there is no docs structure yet; otherwise extend the most relevant existing doc).\n\nMatch the existing tone and formatting. Keep your chat reply to the list of files you wrote."
+}

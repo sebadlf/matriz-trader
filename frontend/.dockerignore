@@ -1,0 +1,12 @@
+# Nunca enviar secretos ni artefactos locales al contexto de build (NFR-3)
+.env
+.env.*
+**/.env
+node_modules
+dist
+playwright-report
+test-results
+*.tsbuildinfo
+.DS_Store
+Dockerfile
+.dockerignore

@@ -1,0 +1,8 @@
+minimumReleaseAgeExclude:
+  - "@tanstack/query-core@5.108.4"
+  - "@tanstack/react-query@5.108.4"
+  - antd@6.7.2
+overrides:
+  vite@*: "npm:@voidzero-dev/vite-plus-core@8.3.8000"
+allowBuilds:
+  esbuild: true
