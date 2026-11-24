@@ -92,6 +92,8 @@ export default defineConfig(({ mode }) => {
       setupFiles: ["./src/test/setup.ts"],
       include: ["src/**/*.test.{ts,tsx}"],
       css: false,
+      // Ant Design en jsdom con cobertura v8 es lento en los runners de CI: 5 s (default) no alcanza.
+      testTimeout: 15_000,
       coverage: {
         provider: "v8",
         include: ["src/**/*.{ts,tsx}"],
