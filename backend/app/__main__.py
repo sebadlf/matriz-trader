@@ -6,6 +6,7 @@ from collections.abc import Sequence
 import uvicorn
 
 from app.core.config import load_settings
+from app.core.logging import configure_logging
 
 
 def main(argv: Sequence[str] | None = None) -> None:
@@ -14,6 +15,8 @@ def main(argv: Sequence[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     settings = load_settings()
+    configure_logging(settings.app_env, settings.log_level)
+    # Sin `log_config=None`, uvicorn reaplica su dictConfig y pisa la configuración de structlog.
     uvicorn.run(
         "app.main:app",
         host=settings.backend_host,
@@ -21,6 +24,8 @@ def main(argv: Sequence[str] | None = None) -> None:
         reload=args.reload,
         reload_dirs=["app"],
         log_level=settings.log_level,
+        log_config=None,
+        access_log=False,
     )
 
 

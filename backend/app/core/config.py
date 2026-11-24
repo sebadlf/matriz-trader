@@ -23,7 +23,8 @@ class Settings(BaseSettings):
 
     app_env: Literal["development", "production"] = "development"
     database_url: PostgresDsn
-    backend_host: str = "0.0.0.0"
+    # Todas las interfaces a propósito: en Docker el puerto se publica desde el contenedor.
+    backend_host: str = "0.0.0.0"  # noqa: S104
     backend_port: int = Field(default=8000, ge=1, le=65535)
     log_level: Literal["critical", "error", "warning", "info", "debug"] = "info"
 
@@ -44,7 +45,7 @@ def load_settings() -> Settings:
         return Settings()
     except ValidationError as exc:
         names = ", ".join(_invalid_variables(exc))
-        print(f"Configuración inválida: {names}\n{exc}", file=sys.stderr)
+        sys.stderr.write(f"Configuración inválida: {names}\n{exc}\n")
         raise SystemExit(1) from exc
 
 

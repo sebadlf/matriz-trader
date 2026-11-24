@@ -1,0 +1,11 @@
+{
+  "id": "guardas-de-calidad-y-buenas-practicas",
+  "name": "Guardas de calidad y buenas prácticas",
+  "kind": "feature",
+  "phase": "done",
+  "path": "/Users/sebadlf/development/matriz-trader/.octo/specs/guardas-de-calidad-y-buenas-practicas",
+  "createdAt": "2026-11-23T23:59:00.000Z",
+  "updatedAt": "2026-11-24T09:57:12.089Z",
+  "brief": "Propuesta de feature que asegure que las nuevas funcionalidades se desarrollen en backend y frontend de acuerdo a las mejores prácticas de cada tecnología: gates bloqueantes desde el día 1 en CI (GitHub Actions), hooks locales, hooks de agentes (Claude Code y Octo) y reglas de arquitectura; seguridad y supply chain, migraciones, accesibilidad y performance de UI, observabilidad y reglas del dominio trading (manual asistido y algorítmico). Solo herramientas OSS o gratuitas. CI accede a market-libs con GitHub App/PAT.",
+  "branch": "feat/guardas-de-calidad-y-buenas-practicas"
+}

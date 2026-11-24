@@ -6,3 +6,7 @@ overrides:
   vite@*: "npm:@voidzero-dev/vite-plus-core@8.3.8000"
 allowBuilds:
   esbuild: true
+  # El postinstall de msw solo copia mockServiceWorker.js para el navegador; los tests usan setupServer (Node).
+  msw: false
+  # El binario nativo de swc llega por optionalDependencies; su postinstall solo lo verifica.
+  "@swc/core": false

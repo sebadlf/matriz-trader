@@ -1,0 +1,5 @@
+# Squawk: lint del SQL de `alembic upgrade head --sql` (gate `migrations`, AC-42).
+pg_version = "17.0"
+# `prefer-text-field` lo dispara la tabla interna `alembic_version` (VARCHAR(32)), que no
+# controlamos; los tipos de las columnas propias los vigila tests/test_domain_types.py.
+excluded_rules = ["prefer-text-field"]

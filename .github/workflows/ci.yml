@@ -1,0 +1,278 @@
+# CI de matriz-trader (AC-1). Cada job solo prepara el entorno e invoca `scripts/gate.sh`: la lista de
+# comandos de cada gate vive en ese script y en ningún otro lado (AC-19).
+# El único check requerido por el ruleset de `main` es `ci-ok`.
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions: {} # AC-3: cada job pide solo lo que necesita
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Versiones de los binarios que se descargan de releases de GitHub, verificados por sha256.
+  ACTIONLINT_VERSION: "1.7.12"
+  ACTIONLINT_SHA256: "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
+  GITLEAKS_VERSION: "8.30.1"
+  GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+  OSV_SCANNER_VERSION: "2.7.1"
+  OSV_SCANNER_SHA256: "fb7dab19a8bd9bbe5c3189f09d4b7ee1820c9553a23bac202648a56efd2f6ee8"
+  ZIZMOR_VERSION: "1.33.1"
+  NODE_VERSION: "22"
+
+jobs:
+  changes:
+    name: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read # paths-filter lista los archivos del PR por la API
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: filter # AC-2: filtro de rutas por job
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - 'scripts/**'
+              - '.github/workflows/**'
+            frontend:
+              - 'frontend/**'
+              - 'backend/openapi.json'
+              - 'scripts/**'
+              - '.github/workflows/**'
+
+  backend:
+    name: backend
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Acceso a market-libs # AC-4, AC-5
+        env:
+          MARKET_LIBS_TOKEN: ${{ secrets.MARKET_LIBS_TOKEN }}
+        run: |
+          if [ -z "${MARKET_LIBS_TOKEN}" ]; then
+            echo "::error::Falta el secret MARKET_LIBS_TOKEN (GitHub App o PAT con lectura de gravity-quant/market-libs)"
+            exit 1
+          fi
+          # Reescribe las fuentes ssh:// de [tool.uv.sources] a HTTPS. Queda en ~/.gitconfig del runner, no en el repo.
+          git config --global url."https://x-access-token:${MARKET_LIBS_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          enable-cache: true # AC-6
+          cache-dependency-glob: backend/uv.lock
+      - name: Instalar dependencias
+        working-directory: backend
+        run: uv sync --frozen
+      - name: Gate backend
+        run: scripts/gate.sh backend full
+
+  frontend:
+    name: frontend
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          package_json_file: frontend/package.json # toma la versión de `packageManager`
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm # AC-6
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Instalar dependencias
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: Gate frontend
+        run: scripts/gate.sh frontend full
+
+  e2e:
+    name: e2e
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Instalar dependencias
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: Instalar Chromium
+        working-directory: frontend
+        run: pnpm exec playwright install --with-deps chromium
+      # Con CI definido (lo define el runner), playwright.config.ts usa forbidOnly, retries: 2 y
+      # trace "on-first-retry" (AC-38).
+      - name: Gate e2e
+        run: scripts/gate.sh e2e full
+      - name: Publicar traces de Playwright # AC-38
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-traces
+          path: frontend/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  migrations:
+    name: migrations
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      # Ficticia: solo la usa `alembic upgrade --sql` (offline). PostgreSQL 17 lo levanta testcontainers
+      # con el Docker del runner (AC-35, AC-41, AC-42).
+      DATABASE_URL: postgresql+psycopg://ci:ci@localhost:5432/ci
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Acceso a market-libs # AC-4, AC-5
+        env:
+          MARKET_LIBS_TOKEN: ${{ secrets.MARKET_LIBS_TOKEN }}
+        run: |
+          if [ -z "${MARKET_LIBS_TOKEN}" ]; then
+            echo "::error::Falta el secret MARKET_LIBS_TOKEN (GitHub App o PAT con lectura de gravity-quant/market-libs)"
+            exit 1
+          fi
+          git config --global url."https://x-access-token:${MARKET_LIBS_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - name: Instalar dependencias
+        working-directory: backend
+        run: uv sync --frozen
+      - name: Gate migrations
+        run: scripts/gate.sh migrations full
+
+  security:
+    name: security
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # gitleaks recorre el historial del PR
+      - name: Instalar gitleaks y OSV-Scanner
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          cd "$RUNNER_TEMP"
+          curl -sSfL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz -C bin gitleaks
+          curl -sSfL -o bin/osv-scanner \
+            "https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64"
+          echo "${OSV_SCANNER_SHA256}  bin/osv-scanner" | sha256sum -c -
+          chmod +x bin/osv-scanner
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      - name: gitleaks # AC-43
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          base="${PR_BASE:-$PUSH_BEFORE}"
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
+            gitleaks git --redact --verbose .   # sin base conocida: todo el historial
+          else
+            gitleaks git --redact --verbose --log-opts="${base}..HEAD" .
+          fi
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          enable-cache: false # uvx pip-audit no tiene lockfile que cachear
+      - name: Auditoría de dependencias # AC-43
+        run: python3 scripts/audit.py
+
+  workflow-lint:
+    name: workflow-lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Instalar actionlint
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          cd "$RUNNER_TEMP"
+          curl -sSfL -o actionlint.tar.gz \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          echo "${ACTIONLINT_SHA256}  actionlint.tar.gz" | sha256sum -c -
+          tar -xzf actionlint.tar.gz -C bin actionlint
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          enable-cache: false
+      - name: actionlint # AC-44
+        run: actionlint -color
+      - name: zizmor # AC-44
+        env:
+          GH_TOKEN: ${{ github.token }} # auditorías online (impostor-commit, known-vulnerable-actions)
+        run: uvx "zizmor@${ZIZMOR_VERSION}" --min-severity low .github/workflows
+
+  ci-ok: # AC-1, AC-2: único check requerido; acepta jobs omitidos por el filtro de rutas
+    name: ci-ok
+    if: always()
+    needs: [changes, backend, frontend, e2e, migrations, security, workflow-lint]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}
+    steps:
+      - name: Verificar resultados
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for r in $RESULTS; do
+            case "$r" in
+              success | skipped) ;;
+              *) echo "::error::Un job terminó en estado '$r'"; exit 1 ;;
+            esac
+          done
+          echo "Todos los jobs en success o skipped: $RESULTS"

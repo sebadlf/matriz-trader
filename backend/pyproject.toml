@@ -11,10 +11,25 @@ dependencies = [
   "pydantic-settings>=2.6",
   "market-data-client",
   "matriz-client",
+  "alembic>=1.14",
+  "structlog>=25.1",
+  "asgi-correlation-id>=4.3",
 ]
 
 [dependency-groups]
-dev = ["ruff>=0.8", "mypy>=1.13", "pytest>=8.3", "pytest-asyncio>=0.24", "httpx>=0.27"]
+dev = [
+  "ruff>=0.8",
+  "mypy>=1.13",
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "httpx>=0.27",
+  "import-linter>=2.1",
+  "pytest-cov>=6.0",
+  "pytest-randomly>=3.16",
+  "hypothesis>=6.120",
+  "schemathesis>=4.0",
+  "testcontainers[postgres]>=4.9",
+]
 
 [tool.uv]
 package = false
@@ -31,6 +46,41 @@ extend-exclude = ["openapi.json"]
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "UP", "N", "SIM", "RUF", "ANN"]
 # Sin ignore ni per-file-ignores de reglas ANN (AC-13): los tests también se anotan.
+extend-select = [
+  "ASYNC", "FAST", "S", "DTZ", "BLE", "TRY", "T20", "ERA", "PT", "PIE", "RET", "C4",
+  "PTH", "LOG", "G", "PERF", "TC", "ARG", "FURB", "TID", "PL", "C90", "FBT",
+]
+ignore = [
+  "PLR2004", # números mágicos: ruido en límites HTTP y tests; los umbrales de dominio van en constantes con nombre
+  "TRY003",  # mensajes largos en excepciones: los usamos para el `detail` de RFC 9457
+  "FBT003",  # booleanos posicionales en llamadas a librerías (SQLAlchemy, FastAPI) que no controlamos
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.flake8-type-checking]
+# TC movería a `if TYPE_CHECKING:` imports que Pydantic, FastAPI y SQLAlchemy evalúan en runtime.
+runtime-evaluated-base-classes = [
+  "pydantic.BaseModel",
+  "pydantic_settings.BaseSettings",
+  "app.db.base.Base",
+]
+runtime-evaluated-decorators = [
+  "fastapi.APIRouter.get",
+  "fastapi.APIRouter.post",
+  "fastapi.APIRouter.put",
+  "fastapi.APIRouter.patch",
+  "fastapi.APIRouter.delete",
+]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"datetime.datetime.utcnow".msg = "Usá datetime.now(UTC) o el Clock inyectable."
+"requests".msg = "Usá httpx.AsyncClient: requests bloquea el event loop."
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR2004", "ARG001"] # assert, literales y fixtures sin usar son idiomáticos en pytest
+"migrations/**" = ["ERA001"]               # Alembic genera comentarios de código
 
 [tool.mypy]
 python_version = "3.13"
@@ -47,3 +97,48 @@ warn_required_dynamic_aliases = true
 testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "-m 'not db' --cov=app --cov-branch --cov-report=term-missing"
+filterwarnings = ["error"]
+markers = ["db: requiere PostgreSQL real vía testcontainers (scripts/gate.sh migrations)"]
+
+[tool.coverage.run]
+branch = true
+source = ["app"]
+omit = ["app/__main__.py", "app/scripts/*"]
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
+
+[tool.importlinter]
+root_package = "app"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Capas"
+type = "layers"
+layers = [
+  "app.scripts",
+  "app.main",
+  "app.api",
+  "app.services",
+  "app.db | app.schemas",
+  "app.domain",
+  "app.core",
+]
+
+[[tool.importlinter.contracts]]
+name = "Dominio puro"
+type = "forbidden"
+source_modules = ["app.domain"]
+forbidden_modules = ["fastapi", "sqlalchemy", "httpx", "matriz_client"]
+
+[[tool.importlinter.contracts]]
+name = "API sin acceso directo a la DB"
+type = "forbidden"
+source_modules = ["app.api"]
+forbidden_modules = ["app.db", "sqlalchemy"]
+allow_indirect_imports = true
+# Con include_external_packages, import-linter registra el paquete externo de primer nivel
+# (`sqlalchemy`), no el submódulo: la excepción se escribe contra `sqlalchemy`.
+ignore_imports = ["app.api.deps -> app.db.session", "app.api.deps -> sqlalchemy"]

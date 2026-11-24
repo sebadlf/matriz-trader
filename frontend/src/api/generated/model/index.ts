@@ -6,3 +6,5 @@
  */
 
 export * from './healthResponse.ts';
+export * from './problemDetails.ts';
+export * from './validationIssue.ts';

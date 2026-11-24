@@ -1,10 +1,22 @@
 import "@testing-library/jest-dom/vitest";
 
 import { cleanup } from "@testing-library/react";
-import { afterEach } from "vite-plus/test";
+import { afterAll, afterEach, beforeAll } from "vite-plus/test";
+
+import { server } from "./server";
+
+// La red se mockea en el borde con MSW: un request sin handler hace fallar el test.
+beforeAll(() => {
+  server.listen({ onUnhandledRequest: "error" });
+});
 
 afterEach(() => {
   cleanup();
+  server.resetHandlers();
+});
+
+afterAll(() => {
+  server.close();
 });
 
 // Ant Design consulta `matchMedia` (Grid/responsive), que jsdom no implementa.

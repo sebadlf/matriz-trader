@@ -1,11 +1,11 @@
 {
   "id": "code-validate-improve",
   "title": "Validate & improve code",
-  "description": "After a wave completes, typecheck, review the diff, and apply safe fixes.",
+  "description": "After a wave completes, run the gate, review the diff, and apply safe fixes.",
   "trigger": "wave-complete",
   "enabled": true,
   "blocking": true,
   "actionType": "ask-claude",
   "agent": "code-reviewer",
-  "instructions": "A wave of tasks just completed.\n\n1. Run `npm run typecheck` via Bash and read the output. (Requires Bash enabled in Settings → Permissions.)\n2. Review the git diff for this wave for correctness, regressions vs the spec's acceptance criteria, and reuse opportunities.\n3. Apply ONLY safe, mechanical fixes directly with the Edit tool: type errors, obvious bugs, dead code, unused imports.\n4. For anything risky or ambiguous, DO NOT edit — list it in your reply for the developer to decide.\n\nKeep your reply concise: typecheck result, fixes applied, and open concerns."
+  "instructions": "A wave of tasks just completed.\n\n1. Run `scripts/gate.sh branch full` via Bash from the repo root and read the output. (Requires Bash enabled in Settings → Permissions.)\n2. Review the git diff for this wave for correctness, regressions vs the spec's acceptance criteria, and reuse opportunities.\n3. Apply ONLY safe, mechanical fixes directly with the Edit tool: type errors, obvious bugs, dead code, unused imports.\n4. For anything risky or ambiguous, DO NOT edit — list it in your reply for the developer to decide.\n\nKeep your reply concise: gate result, fixes applied, and open concerns."
 }

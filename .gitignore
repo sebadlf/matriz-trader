@@ -10,13 +10,23 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
 
 # --- Node / frontend ---
 node_modules/
 dist/
 playwright-report/
 test-results/
+coverage/
 *.tsbuildinfo
+
+# --- Probes temporales de scripts/verify-guards.sh (se borran solos; esto cubre una interrupción) ---
+**/_probe*
+# Las fuentes de los probes sí se versionan.
+!scripts/guard-probes/**
 
 # --- Sistema operativo / editores ---
 .DS_Store

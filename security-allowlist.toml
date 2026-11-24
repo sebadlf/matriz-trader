@@ -1,0 +1,14 @@
+# Vulnerabilidades aceptadas por `scripts/audit.py` (job `security` de CI, AC-43).
+#
+# Cada entrada necesita una justificación y una fecha de vencimiento. Se revisa antes de `expires`:
+# una entrada vencida hace fallar el job. `expires` es como máximo 90 días desde que se agrega.
+# Una entrada aplica si coinciden `ecosystem`, `package` y `id` (el id o cualquiera de sus alias).
+#
+# Ejemplo:
+#
+# [[ignore]]
+# id = "GHSA-xxxx-xxxx-xxxx"        # o CVE / PYSEC / OSV id
+# ecosystem = "PyPI"                # "PyPI" | "npm"
+# package = "nombre"
+# reason = "No alcanzable: solo se usa en tests"
+# expires = 2027-02-28              # fecha TOML (sin comillas)
