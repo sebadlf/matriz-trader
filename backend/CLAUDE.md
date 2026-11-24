@@ -96,7 +96,7 @@ backend/
 
 - Van en `tests/test_<tema>.py` y corren en orden aleatorio, con los warnings como errores — lo verifican pytest-randomly y `filterwarnings = ["error"]`.
 - La cobertura de branches de `app/` no baja del 85 % — lo verifica pytest-cov (`fail_under = 85`).
-- Los endpoints se prueban con el fixture `client` (`httpx.AsyncClient` + `ASGITransport`, que no ejecuta el `lifespan`, así que no hace falta PostgreSQL). El fixture autouse `test_env` define un `DATABASE_URL` de prueba.
+- Los endpoints se prueban con el fixture `client` (`httpx.AsyncClient` + `ASGITransport`, que no ejecuta el `lifespan`, así que no hace falta PostgreSQL). El fixture autouse `test_env` define un `DATABASE_URL` de prueba y las credenciales ficticias de `matriz-client` y `market-data-client` (`TEST_CREDENTIALS`, obligatorias en `Settings`), y borra `PRIMARY_BASE_URL` y `MARKET_DATA_BASE_URL` para que rijan los defaults. Los tests que no deben leer el `.env` local pasan `_env_file=None` a `Settings`.
 - Toda respuesta cumple el `openapi.json` versionado — lo verifica `tests/test_contract.py` (Schemathesis contra la app ASGI).
 - `openapi.json` coincide con `create_app().openapi()` — lo verifica `tests/test_openapi_export.py`.
 - Los tests que necesitan PostgreSQL real se marcan con `@pytest.mark.db`; `uv run pytest` los excluye y los corre `scripts/gate.sh migrations`.

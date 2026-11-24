@@ -7,6 +7,7 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+import structlog
 from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI
 
@@ -18,12 +19,22 @@ from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.db.session import build_engine, build_session_factory
 
+logger = structlog.get_logger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Crea el engine y la fábrica de sesiones al arrancar y libera el pool al cerrar."""
     settings = get_settings()
     configure_logging(settings.app_env, settings.log_level)
+    # Contra qué entornos opera el backend (reMarkets/producción). Solo hosts: nunca usuario,
+    # secretos ni la URL completa.
+    logger.info(
+        "external_endpoints",
+        primary_host=settings.primary_base_url.host,
+        market_data_host=settings.market_data_base_url.host,
+        market_data_auth_host=settings.market_data_auth0_token_url.host,
+    )
     engine = build_engine(str(settings.database_url))
     app.state.session_factory = build_session_factory(engine)
     try:

@@ -7,6 +7,20 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-24
+
+### Added
+
+- Variables de configuración de las librerías internas en el `.env` de la raíz: `PRIMARY_USER`, `PRIMARY_PASSWORD` y `PRIMARY_BASE_URL` (`matriz-client`), y `MARKET_DATA_CLIENT_ID`, `MARKET_DATA_CLIENT_SECRET`, `MARKET_DATA_AUDIENCE`, `MARKET_DATA_AUTH0_TOKEN_URL` y `MARKET_DATA_BASE_URL` (`market-data-client`). `.env.example` las documenta en dos secciones, con un comentario por variable y placeholders no secretos.
+- `Settings` (`backend/app/core/config.py`) expone las ocho variables como campos tipados con los mismos nombres que leen las librerías: credenciales no vacías, secretos como `SecretStr` y URLs como `HttpUrl` (solo `http`/`https` absolutas). `PRIMARY_BASE_URL` y `MARKET_DATA_BASE_URL` tienen como default el de cada librería (reMarkets y market data develop).
+- Al arrancar, el backend registra el log `external_endpoints` con los hosts efectivos de Primary, market data y Auth0, sin credenciales ni URLs completas, para que quede a la vista contra qué entorno opera.
+
+### Changed
+
+- Las seis credenciales son obligatorias: si falta alguna o está vacía (o solo tiene espacios), `python -m app` y `alembic` salen con código 1 y nombran cada variable en stderr. Un `.env` anterior a esta versión tiene que completarse a partir de `.env.example`.
+- `load_settings()` imprime una línea `VARIABLE: mensaje` por error, sin el valor recibido, y corta el traceback encadenado, de modo que `PRIMARY_PASSWORD` y `MARKET_DATA_CLIENT_SECRET` nunca aparecen en stderr.
+- Los tests del backend (`test_env` en `backend/tests/conftest.py`) y el job `migrations` de CI definen credenciales ficticias.
+
 ## [0.2.0] - 2026-11-23
 
 ### Added

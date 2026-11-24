@@ -164,6 +164,13 @@ jobs:
       # Ficticia: solo la usa `alembic upgrade --sql` (offline). PostgreSQL 17 lo levanta testcontainers
       # con el Docker del runner (AC-35, AC-41, AC-42).
       DATABASE_URL: postgresql+psycopg://ci:ci@localhost:5432/ci
+      # Ficticias: `migrations/env.py` valida Settings completas (credenciales obligatorias).
+      PRIMARY_USER: ci
+      PRIMARY_PASSWORD: ci-not-a-secret
+      MARKET_DATA_CLIENT_ID: ci
+      MARKET_DATA_CLIENT_SECRET: ci-not-a-secret
+      MARKET_DATA_AUDIENCE: ci
+      MARKET_DATA_AUTH0_TOKEN_URL: https://auth.ci.invalid/oauth/token
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

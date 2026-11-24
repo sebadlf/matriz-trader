@@ -1,0 +1,13 @@
+{
+  "id": "necesito-que-se-expongan-en-el",
+  "name": "Necesito que se expongan en el",
+  "kind": "feature",
+  "phase": "done",
+  "path": "/Users/sebadlf/development/matriz-trader/.octo/specs/necesito-que-se-expongan-en-el",
+  "createdAt": "2026-11-24T14:16:38.174Z",
+  "updatedAt": "2026-11-24T16:14:29.102Z",
+  "brief": "Necesito que se expongan en el .env las variables de configuracion necesarias para market-data-client y matriz-client",
+  "prNumber": 2,
+  "prUrl": "https://github.com/sebadlf/matriz-trader/pull/2",
+  "prState": "open"
+}

@@ -58,6 +58,8 @@ cp .env.example .env
 
 Cada variable de `.env.example` tiene un comentario que explica su uso. Los valores de ejemplo sirven para desarrollo local; cambiá al menos `POSTGRES_PASSWORD` (y el `DATABASE_URL` que la contiene) fuera de tu máquina.
 
+El backend también exige las credenciales de las librerías internas: `PRIMARY_USER` y `PRIMARY_PASSWORD` (`matriz-client`), y `MARKET_DATA_CLIENT_ID`, `MARKET_DATA_CLIENT_SECRET`, `MARKET_DATA_AUDIENCE` y `MARKET_DATA_AUTH0_TOKEN_URL` (`market-data-client`). Si falta alguna o está vacía, el backend no arranca y nombra la variable en stderr. `PRIMARY_BASE_URL` y `MARKET_DATA_BASE_URL` son opcionales y, por defecto, apuntan a entornos de prueba (reMarkets y market data develop).
+
 ## Backend local
 
 Requiere un PostgreSQL accesible en el `DATABASE_URL` del `.env`. La forma más simple es levantar solo la base con Compose:

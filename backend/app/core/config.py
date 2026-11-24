@@ -3,12 +3,26 @@
 import sys
 from functools import lru_cache
 from pathlib import Path
-from typing import Final, Literal
+from typing import Annotated, Final, Literal
 
-from pydantic import Field, PostgresDsn, ValidationError
+from pydantic import (
+    Field,
+    HttpUrl,
+    PostgresDsn,
+    SecretStr,
+    StringConstraints,
+    ValidationError,
+    field_validator,
+)
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT_ENV_FILE: Final = Path(__file__).resolve().parents[3] / ".env"  # <repo>/.env
+
+# Defaults de cada librería (entornos de prueba, no producción).
+PRIMARY_BASE_URL_DEFAULT: Final = HttpUrl("https://api.remarkets.primary.com.ar")
+MARKET_DATA_BASE_URL_DEFAULT: Final = HttpUrl("https://market-data-develop.bbsa.com.ar/api")
+
+NonEmptyStr = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
 
 class Settings(BaseSettings):
@@ -28,15 +42,44 @@ class Settings(BaseSettings):
     backend_port: int = Field(default=8000, ge=1, le=65535)
     log_level: Literal["critical", "error", "warning", "info", "debug"] = "info"
 
+    # --- matriz-client (nombres exactos que lee la librería) ---
+    primary_user: NonEmptyStr
+    primary_password: SecretStr
+    primary_base_url: HttpUrl = PRIMARY_BASE_URL_DEFAULT
 
-def _invalid_variables(exc: ValidationError) -> list[str]:
-    names: list[str] = []
-    for error in exc.errors():
+    # --- market-data-client (nombres exactos que lee la librería) ---
+    market_data_client_id: NonEmptyStr
+    market_data_client_secret: SecretStr
+    market_data_audience: NonEmptyStr
+    market_data_auth0_token_url: HttpUrl
+    market_data_base_url: HttpUrl = MARKET_DATA_BASE_URL_DEFAULT
+
+    @field_validator("primary_password", "market_data_client_secret")
+    @classmethod
+    def _secret_not_blank(cls, value: SecretStr) -> SecretStr:
+        if not value.get_secret_value().strip():
+            msg = "no puede estar vacía"
+            raise ValueError(msg)
+        return value
+
+
+def _errors(exc: ValidationError) -> list[tuple[str, str]]:
+    """`(VARIABLE, mensaje)` por error, sin `input_value` (puede contener secretos)."""
+    result: list[tuple[str, str]] = []
+    for error in exc.errors(include_input=False, include_url=False):
         loc = error["loc"]
         name = str(loc[0]).upper() if loc else "<desconocida>"
-        if name not in names:
-            names.append(name)
-    return names
+        result.append((name, error["msg"]))
+    return result
+
+
+def _invalid_variables(exc: ValidationError) -> list[str]:
+    return list(dict.fromkeys(name for name, _ in _errors(exc)))
+
+
+def _format_errors(exc: ValidationError) -> str:
+    """Una línea por error, `VARIABLE: mensaje`."""
+    return "\n".join(f"  - {name}: {msg}" for name, msg in _errors(exc))
 
 
 def load_settings() -> Settings:
@@ -45,8 +88,9 @@ def load_settings() -> Settings:
         return Settings()
     except ValidationError as exc:
         names = ", ".join(_invalid_variables(exc))
-        sys.stderr.write(f"Configuración inválida: {names}\n{exc}\n")
-        raise SystemExit(1) from exc
+        sys.stderr.write(f"Configuración inválida: {names}\n{_format_errors(exc)}\n")
+        # `from None`: el traceback encadenado repetiría el input (con secretos).
+        raise SystemExit(1) from None
 
 
 @lru_cache
