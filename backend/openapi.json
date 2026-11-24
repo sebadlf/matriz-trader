@@ -27,6 +27,272 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "MarketDataResponse": {
+        "description": "Market data de todos los instrumentos suscriptos, ordenada por `symbol` y `market_id`.",
+        "properties": {
+          "fetched_at": {
+            "description": "Momento en que se terminó de obtener la lista (UTC).",
+            "format": "date-time",
+            "title": "Fetched At",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MarketDataRow"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items",
+          "fetched_at"
+        ],
+        "title": "MarketDataResponse",
+        "type": "object"
+      },
+      "MarketDataRow": {
+        "description": "Último snapshot de un instrumento. Un campo sin dato del servicio es `null`, nunca `\"0\"`.",
+        "properties": {
+          "ask_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Precio del mejor ask (OF[0]).",
+            "title": "Ask Price"
+          },
+          "ask_size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cantidad del mejor ask (OF[0]).",
+            "title": "Ask Size"
+          },
+          "bid_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Precio del mejor bid (BI[0]).",
+            "title": "Bid Price"
+          },
+          "bid_size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cantidad del mejor bid (BI[0]).",
+            "title": "Bid Size"
+          },
+          "close_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cierre anterior (CL).",
+            "title": "Close Price"
+          },
+          "high_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Máximo (HI).",
+            "title": "High Price"
+          },
+          "last_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Fecha del último operado (LA), en UTC.",
+            "title": "Last At"
+          },
+          "last_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Precio del último operado (LA).",
+            "title": "Last Price"
+          },
+          "last_size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cantidad del último operado (LA).",
+            "title": "Last Size"
+          },
+          "low_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mínimo (LO).",
+            "title": "Low Price"
+          },
+          "market_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Id"
+          },
+          "open_interest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Interés abierto (OI).",
+            "title": "Open Interest"
+          },
+          "open_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Apertura (OP).",
+            "title": "Open Price"
+          },
+          "received_at": {
+            "description": "Momento en que se obtuvo el snapshot, en UTC.",
+            "format": "date-time",
+            "title": "Received At",
+            "type": "string"
+          },
+          "settlement_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Settlement (SE).",
+            "title": "Settlement Price"
+          },
+          "spread_pct": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "(ask - bid) / precio medio * 100, con 4 decimales; `null` sin bid/ask > 0.",
+            "title": "Spread Pct"
+          },
+          "staleness_seconds": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Antigüedad del dato según el servicio de market data, en segundos.",
+            "title": "Staleness Seconds"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "volume": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Volumen operado (TV).",
+            "title": "Volume"
+          }
+        },
+        "required": [
+          "symbol",
+          "market_id",
+          "bid_price",
+          "bid_size",
+          "ask_price",
+          "ask_size",
+          "last_price",
+          "last_size",
+          "last_at",
+          "open_price",
+          "high_price",
+          "low_price",
+          "close_price",
+          "settlement_price",
+          "open_interest",
+          "volume",
+          "spread_pct",
+          "staleness_seconds",
+          "received_at"
+        ],
+        "title": "MarketDataRow",
+        "type": "object"
+      },
       "ProblemDetails": {
         "description": "Error RFC 9457 que devuelve toda respuesta de error de la API.",
         "properties": {
@@ -204,6 +470,88 @@
         "summary": "Get Health",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/api/market-data": {
+      "get": {
+        "description": "Market data de todos los instrumentos suscriptos, con el spread bid/ask en %.\n\nResponde 502 si el servicio de market data falla, sin datos parciales.",
+        "operationId": "listMarketData",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketDataResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "No encontrado (RFC 9457)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validación (RFC 9457)"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Error interno (RFC 9457)"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Market data no disponible (RFC 9457)"
+          }
+        },
+        "summary": "List Market Data Route",
+        "tags": [
+          "market-data"
         ]
       }
     }

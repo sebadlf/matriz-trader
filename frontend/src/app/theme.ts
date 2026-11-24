@@ -9,5 +9,7 @@ export const theme: ThemeConfig = {
     colorLink: "#0958d9",
     // Texto descriptivo (p. ej. subtítulos de `Result`): 65 % de opacidad en lugar de 45 %.
     colorTextDescription: "rgba(0, 0, 0, 0.65)",
+    // Placeholder de `Select`/`Input`: 55 % (#737373, 4.7:1 sobre blanco) en lugar de 25 % (1.8:1).
+    colorTextPlaceholder: "rgba(0, 0, 0, 0.55)",
   },
 };

@@ -12,3 +12,10 @@ class DomainError(Exception):
     def __init__(self, detail: str) -> None:
         super().__init__(detail)
         self.detail = detail
+
+
+class MarketDataUnavailableError(DomainError):
+    """El servicio de market data no respondió o respondió con error (se expone como 502)."""
+
+    status: ClassVar[int] = 502
+    title: ClassVar[str] = "Market data no disponible"

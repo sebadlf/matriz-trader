@@ -37,6 +37,14 @@ PROBLEM_RESPONSES: Final[dict[int | str, dict[str, Any]]] = {
         "description": "Error interno (RFC 9457)",
     },
 }
+# Fallo del servicio de market data (502): lo agrega a su `responses=` cada ruta que lo consulta.
+UPSTREAM_PROBLEM_RESPONSE: Final[dict[int | str, dict[str, Any]]] = {
+    502: {
+        "model": ProblemDetails,
+        "content": _PROBLEM_CONTENT,
+        "description": "Market data no disponible (RFC 9457)",
+    },
+}
 
 logger = logging.getLogger(__name__)
 

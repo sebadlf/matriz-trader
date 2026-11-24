@@ -15,6 +15,12 @@ export const routes: RouteObject[] = [
         index: true,
         lazy: async () => ({ Component: (await import("@/screens/HomeScreen")).HomeScreen }),
       },
+      {
+        path: ROUTES.marketData,
+        lazy: async () => ({
+          Component: (await import("@/screens/MarketDataScreen")).MarketDataScreen,
+        }),
+      },
       { path: ROUTES.notFound, element: <NotFoundScreen /> },
     ],
   },

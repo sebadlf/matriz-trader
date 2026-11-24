@@ -7,6 +7,22 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-24
+
+### Added
+
+- `GET /api/market-data` (`operation_id` `listMarketData`, tag `market-data`): devuelve el último snapshot de todos los instrumentos activos del catálogo de `market-data-client`, paginando la librería hasta agotar los resultados. Cada fila trae símbolo, mercado, mejor bid y ask (precio y cantidad), último operado (precio, cantidad y hora), apertura, máximo, mínimo, cierre, settlement, interés abierto, volumen, `staleness_seconds` y la fecha de recepción.
+- Campo calculado `spread_pct = (ask − bid) / ((ask + bid) / 2) × 100`, con aritmética `Decimal` y 4 decimales (`ROUND_HALF_EVEN`). Es `null` si falta el bid o el ask, o si alguno de sus precios es ≤ 0; con el libro cruzado es negativo.
+- Todos los numéricos viajan como `string` (`Decimal` en el backend, nunca `float`), las fechas en ISO 8601 UTC y los valores ausentes como `null`, nunca `"0"`. Un instrumento sin datos aparece igual, con `symbol`, `market_id` y el resto en `null`.
+- Pantalla `/market-data` con una tabla de una fila por instrumento y la columna `Spread %` (2 decimales). Filtros por símbolo (contiene, sin distinguir mayúsculas) y por mercado (selección múltiple), combinados y guardados en la URL (`?symbol=al30&market=ROFX`), con estado «Ningún instrumento coincide con los filtros» y acción «Limpiar filtros».
+- La pantalla se refresca cada 5 s (se pausa con la pestaña oculta), tiene un botón «Actualizar» y muestra la hora de la última actualización exitosa. Maneja carga, lista vacía («No hay instrumentos suscriptos»), error inicial con `correlationId` y botón «Reintentar», y error de actualización conservando los últimos datos.
+- Si `market-data-client` falla (autenticación, timeout, red, 5xx o paginación sin fin), el backend responde `502` con `application/problem+json` y `correlation_id`, sin datos parciales, y registra `market_data_fetch_failed` con el tipo de error y sin secretos.
+
+### Changed
+
+- El presupuesto de size-limit sube de 240 kB a 370 kB gzip por la `Table` y el `Select` de AntD en el chunk lazy de `/market-data`; la carga inicial no cambia.
+- El color de placeholder del tema (`colorTextPlaceholder`) es más oscuro en toda la app para cumplir el contraste de WCAG 2.2 AA.
+
 ## [0.3.0] - 2026-11-24
 
 ### Added

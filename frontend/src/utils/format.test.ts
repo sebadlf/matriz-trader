@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { formatPrice, formatQuantity } from "./format";
+import { formatPercent, formatPrice, formatQuantity, formatTime } from "./format";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -30,6 +30,36 @@ describe("formatQuantity", () => {
 
   it("devuelve NaN ante un string no numérico", () => {
     expect(formatQuantity("abc", 2)).toBe("NaN");
+  });
+});
+
+describe("formatPercent", () => {
+  it("muestra 2 decimales y el signo %, redondeando half-even", () => {
+    expect(formatPercent("0.1250")).toBe("0,12%");
+    expect(formatPercent("0.1350")).toBe("0,14%");
+    expect(formatPercent("12.3456")).toBe("12,35%");
+  });
+
+  it("conserva el signo de un spread negativo (libro cruzado)", () => {
+    expect(formatPercent("-0.9950")).toBe("-1,00%");
+    expect(formatPercent("-0.9940")).toBe("-0,99%");
+  });
+
+  it("formatea desde el string sin pasar por number (no pierde precisión)", () => {
+    // Como float, 12345678901234567.125 se redondearía a 12345678901234568.
+    expect(formatPercent("12345678901234567.125")).toBe("12.345.678.901.234.567,12%");
+  });
+});
+
+describe("formatTime", () => {
+  it("formatea epoch en milisegundos como hora local HH:mm:ss", () => {
+    const epochMs = new Date(2026, 10, 24, 14, 3, 11).getTime();
+    expect(formatTime(epochMs)).toBe("14:03:11");
+  });
+
+  it("formatea un ISO 8601 con zona horaria", () => {
+    const iso = new Date(2026, 10, 24, 9, 5, 7).toISOString();
+    expect(formatTime(iso)).toBe("09:05:07");
   });
 });
 

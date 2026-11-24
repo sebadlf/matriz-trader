@@ -17,6 +17,15 @@ Price = Annotated[Decimal, Field(ge=0, max_digits=20, decimal_places=8), _as_str
 Quantity = Annotated[Decimal, Field(ge=0, max_digits=20, decimal_places=8), _as_str]
 Money = Annotated[Decimal, Field(max_digits=24, decimal_places=8), _as_str]
 
+MarketDecimal = Annotated[Decimal, Field(allow_inf_nan=False), _as_str]
+"""Valor numérico que viene de una fuente externa (precio, tamaño, volumen).
+
+Sin `ge=0` ni `max_digits`: un precio negativo (spreads, calendarios) o con más decimales
+no debe convertir la respuesta entera en un 500.
+"""
+Percent = Annotated[Decimal, Field(allow_inf_nan=False, decimal_places=4), _as_str]
+"""Porcentaje con hasta 4 decimales; admite negativos (p. ej. spread con libro cruzado)."""
+
 
 def round_to_tick(price: Decimal, tick: Decimal) -> Decimal:
     """Redondea `price` al múltiplo de `tick` más cercano (ROUND_HALF_EVEN).

@@ -1,6 +1,8 @@
 import { AxeBuilder } from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+import { mockMarketData, symbolAt } from "./marketData";
+
 // Accesibilidad (AC-37): axe sobre cada pantalla con las etiquetas WCAG 2.2 AA.
 // El backend se mockea igual que en home.spec.ts: no depende de la API ni de PostgreSQL.
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"];
@@ -27,6 +29,16 @@ test("la home no tiene violaciones WCAG 2.2 AA", async ({ page }) => {
   await page.goto("/");
   // Espera a que la pantalla termine de cargar los datos antes de analizar.
   await expect(page.getByText("Backend: ok")).toBeVisible();
+
+  const { violations } = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
+
+  expect(summarize(violations)).toEqual([]);
+});
+
+test("la pantalla de market data no tiene violaciones WCAG 2.2 AA", async ({ page }) => {
+  await mockMarketData(page, 20);
+  await page.goto("/market-data");
+  await expect(page.getByRole("cell", { name: symbolAt(0) })).toBeVisible();
 
   const { violations } = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
 

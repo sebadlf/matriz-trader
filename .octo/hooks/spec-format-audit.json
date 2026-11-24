@@ -3,7 +3,7 @@
   "title": "Audit document format on advance",
   "description": "When a phase is approved, check the documents against the format rules the app parses.",
   "trigger": "spec-advance",
-  "enabled": false,
+  "enabled": true,
   "blocking": false,
   "actionType": "ask-claude",
   "agent": "spec-doctor",

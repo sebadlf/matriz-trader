@@ -11,10 +11,14 @@ from typing import Any, Final
 
 import schemathesis
 
+from app.api.deps import get_market_data_source
 from app.main import create_app
+from tests.test_market_data_service import FakeSource, make_snapshot
 
 OPENAPI_PATH: Final = Path(__file__).resolve().parents[1] / "openapi.json"
 APP: Final = create_app()
+# Fuente fija: Schemathesis nunca sale a la red ni a Auth0.
+APP.dependency_overrides[get_market_data_source] = lambda: FakeSource([make_snapshot("GGAL")])
 
 schema = schemathesis.openapi.from_path(OPENAPI_PATH)
 

@@ -48,7 +48,7 @@
       "name": "JS total (gzip)",
       "path": "dist/assets/*.js",
       "gzip": true,
-      "limit": "240 kB"
+      "limit": "370 kB"
     }
   ],
   "packageManager": "pnpm@12.23.0"

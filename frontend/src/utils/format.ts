@@ -40,3 +40,19 @@ export const formatPrice = (value: string, decimals: number): string =>
 /** Formatea una cantidad con hasta `maxDecimals` decimales, sin ceros finales. */
 export const formatQuantity = (value: string, maxDecimals: number): string =>
   formatter(0, maxDecimals).format(toFormattable(value));
+
+/**
+ * Formatea un porcentaje decimal con 2 decimales y el signo `%`: `"0.1250"` → `"0,12%"`.
+ * Igual que `formatPrice`, no pasa por `number` ni multiplica: el valor ya viene en porcentaje.
+ */
+export const formatPercent = (value: string): string => `${formatPrice(value, 2)}%`;
+
+const timeFormatter = new Intl.DateTimeFormat(LOCALE, {
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+});
+
+/** Formatea un instante (epoch en milisegundos o ISO 8601) como hora local `"14:03:11"`. */
+export const formatTime = (value: number | string): string => timeFormatter.format(new Date(value));

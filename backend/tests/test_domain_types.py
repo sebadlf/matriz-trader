@@ -7,7 +7,7 @@ import re
 import types
 from collections.abc import Iterable
 from decimal import Decimal
-from typing import Final, Union, get_args, get_origin
+from typing import Annotated, Final, Union, get_args, get_origin
 
 from pydantic import BaseModel
 from sqlalchemy import Column, Float, MetaData, Numeric, Table
@@ -34,10 +34,13 @@ def schema_models() -> list[type[BaseModel]]:
 
 
 def _unwrap_optional(annotation: object) -> object:
+    """`T | None` → `T`; además quita un `Annotated[...]` interno (p. ej. `Price | None`)."""
     if get_origin(annotation) in (Union, types.UnionType):
         args = [arg for arg in get_args(annotation) if arg is not type(None)]
         if len(args) == 1:
-            return args[0]
+            annotation = args[0]
+    if get_origin(annotation) is Annotated:
+        return get_args(annotation)[0]
     return annotation
 
 

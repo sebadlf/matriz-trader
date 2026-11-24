@@ -6,5 +6,7 @@
  */
 
 export * from './healthResponse.ts';
+export * from './marketDataResponse.ts';
+export * from './marketDataRow.ts';
 export * from './problemDetails.ts';
 export * from './validationIssue.ts';
