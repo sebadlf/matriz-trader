@@ -1,0 +1,5 @@
+# Falsos positivos de gitleaks, por fingerprint (<commit>:<archivo>:<regla>:<línea>).
+# Cada entrada necesita un motivo.
+
+# Valor falso ("hunter2-plano") que usa test_secrets_are_redacted_in_json_output para probar la redacción de logs.
+74d21bd7147ba948fe94fb50fe00eb1da0fbeb8f:backend/tests/test_logging.py:generic-api-key:86

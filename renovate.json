@@ -1,0 +1,21 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests", ":semanticCommits"],
+  "minimumReleaseAge": "7 days",
+  "packageRules": [
+    { "matchFileNames": ["backend/**"], "groupName": "backend" },
+    { "matchFileNames": ["frontend/**"], "groupName": "frontend" },
+    { "matchManagers": ["github-actions"], "groupName": "github-actions" },
+    {
+      "description": "@vitest/coverage-v8 exige el mismo Vitest que trae vite-plus: se suben juntos",
+      "matchPackageNames": ["vite-plus", "@vitest/coverage-v8"],
+      "groupName": "vite-plus"
+    },
+    {
+      "matchDepNames": ["market-data-client", "matriz-client"],
+      "groupName": "market-libs",
+      "minimumReleaseAge": "0 days",
+      "versioning": "regex:^(?<compatibility>.+)-v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+    }
+  ]
+}

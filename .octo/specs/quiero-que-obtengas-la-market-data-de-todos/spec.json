@@ -1,0 +1,10 @@
+{
+  "id": "quiero-que-obtengas-la-market-data-de-todos",
+  "name": "Quiero que obtengas la market data de todos",
+  "kind": "feature",
+  "phase": "done",
+  "path": "/Users/sebadlf/development/matriz-trader/.octo/specs/quiero-que-obtengas-la-market-data-de-todos",
+  "createdAt": "2026-11-24T17:56:57.158Z",
+  "updatedAt": "2026-11-24T18:58:50.330Z",
+  "brief": "Quiero que obtengas la market data de todos los instrumentos subscriptos y la muestres en una tabla que pueda ser filtrada. Agrega ademas de la data que viene de market-data-client sl spread entre ask y bid expresado en porcentaje"
+}

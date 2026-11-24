@@ -1,0 +1,28 @@
+# Hooks de git (AC-8 a AC-13). Instalación: `lefthook install` en la raíz del repo.
+# La lógica vive en scripts bash: lefthook ejecuta `run` con `sh`, que no soporta `<<<` ni `${#var}`.
+# Los comandos de cada gate están solo en scripts/gate.sh (AC-19).
+pre-commit:
+  parallel: true
+  commands:
+    backend:
+      # En lefthook 2.x, `**/` exige al menos un directorio intermedio: se lista también el nivel raíz.
+      glob:
+        - "backend/*.py"
+        - "backend/**/*.py"
+      run: scripts/gate.sh backend quick # AC-9
+      stage_fixed: true
+    frontend:
+      glob:
+        - "frontend/*.{ts,tsx}"
+        - "frontend/**/*.{ts,tsx}"
+      run: scripts/gate.sh frontend quick # AC-10
+      stage_fixed: true
+    generated-sync: # AC-11
+      run: scripts/hooks/check-generated-sync.sh
+    gitleaks: # AC-12
+      run: scripts/hooks/gitleaks-staged.sh
+
+commit-msg:
+  commands:
+    conventional: # AC-13
+      run: scripts/hooks/commit-msg.sh {1}

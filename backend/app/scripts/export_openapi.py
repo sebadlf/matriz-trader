@@ -4,6 +4,7 @@ Uso: `uv run python -m app.scripts.export_openapi`. No levanta el servidor ni us
 """
 
 import json
+import sys
 from pathlib import Path
 from typing import Any, Final
 
@@ -20,7 +21,7 @@ def render_openapi() -> str:
 
 def main() -> None:
     OUTPUT.write_text(render_openapi(), encoding="utf-8")
-    print(f"OpenAPI escrito en {OUTPUT}")
+    sys.stdout.write(f"OpenAPI escrito en {OUTPUT}\n")
 
 
 if __name__ == "__main__":

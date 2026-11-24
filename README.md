@@ -8,7 +8,7 @@ Por ahora el repo es solo el esqueleto del monorepo, sin funcionalidad de negoci
 - `frontend/`: React + TypeScript sobre Vite+ (`vp`), con Ant Design, React Router, Zustand y un cliente generado con Orval (react-query).
 - PostgreSQL 17, dos archivos de Docker Compose (`docker-compose.dev.yml` y `docker-compose.prod.yml`) y un único `.env` en la raíz.
 
-Las convenciones de código, la estructura de carpetas y el flujo de regeneración del cliente Orval están en [`CLAUDE.md`](CLAUDE.md).
+Las convenciones de código están en [`CLAUDE.md`](CLAUDE.md) (contexto, gates, Definición de terminado y checklist), [`backend/CLAUDE.md`](backend/CLAUDE.md) y [`frontend/CLAUDE.md`](frontend/CLAUDE.md) (estructura, reglas de dependencia y flujo de regeneración del cliente Orval).
 
 ## Prerrequisitos
 
@@ -19,8 +19,12 @@ Las convenciones de código, la estructura de carpetas y el flujo de regeneraci�
 | Node.js | 22 | Frontend |
 | pnpm | la fijada en `frontend/package.json` (`packageManager`) | Se activa con `corepack enable` |
 | Vite+ (`vp`) | 1.7 | CLI del frontend: instalador oficial (ver abajo) |
-| Docker + Docker Compose | Compose ≥ 2.24 | Modo contenedores (dev y prod) |
+| Docker + Docker Compose | Compose ≥ 2.24 | Modo contenedores (dev y prod) y gate `migrations` (testcontainers) |
 | Acceso SSH a `github.com/gravity-quant/market-libs` | — | Instalar `market-data-client` y `matriz-client` |
+| [lefthook](https://lefthook.dev/) | ≥ 2.2 | Hooks de git (`pre-commit` y `commit-msg`) |
+| [gitleaks](https://github.com/gitleaks/gitleaks) | ≥ 8.30 | Detección de secretos en cada commit |
+| [jq](https://jqlang.org/) | cualquiera | Hooks de Claude Code (`.claude/hooks/`); en macOS viene en `/usr/bin/jq` |
+| [OSV-Scanner](https://google.github.io/osv-scanner/) | 2.7 | Solo para correr `scripts/audit.py` en local |
 
 ### Instalar Vite+ (`vp`)
 
@@ -53,6 +57,8 @@ cp .env.example .env
 ```
 
 Cada variable de `.env.example` tiene un comentario que explica su uso. Los valores de ejemplo sirven para desarrollo local; cambiá al menos `POSTGRES_PASSWORD` (y el `DATABASE_URL` que la contiene) fuera de tu máquina.
+
+El backend también exige las credenciales de las librerías internas: `PRIMARY_USER` y `PRIMARY_PASSWORD` (`matriz-client`), y `MARKET_DATA_CLIENT_ID`, `MARKET_DATA_CLIENT_SECRET`, `MARKET_DATA_AUDIENCE` y `MARKET_DATA_AUTH0_TOKEN_URL` (`market-data-client`). Si falta alguna o está vacía, el backend no arranca y nombra la variable en stderr. `PRIMARY_BASE_URL` y `MARKET_DATA_BASE_URL` son opcionales y, por defecto, apuntan a entornos de prueba (reMarkets y market data develop).
 
 ## Backend local
 
@@ -144,27 +150,48 @@ Si levantás solo el frontend, nginx arranca igual y `/api` responde 502 hasta q
 
 ## Calidad y tests
 
-### Backend (desde `backend/`)
+Todos los gates son bloqueantes y se definen en un único script, `scripts/gate.sh`. Lo invocan los hooks de git (lefthook), los hooks de Claude Code (`.claude/settings.json`), el hook de Octo y GitHub Actions, así que lo que pasa en tu máquina es lo mismo que corre en CI. La tabla de qué corre en cada momento está en [`CLAUDE.md`](CLAUDE.md#4-gates-y-dónde-corren).
+
+### Correr los gates
+
+Desde la raíz del repo, con las dependencias de ambos módulos instaladas (`uv sync` en `backend/` y `vp install` en `frontend/`):
 
 ```bash
-uv run ruff check .              # lint (incluye las reglas de anotaciones ANN)
-uv run ruff format --check .     # formato (sin --check, formatea)
-uv run mypy .                    # tipado strict con el plugin pydantic.mypy
-uv run pytest                    # tests (no necesitan PostgreSQL)
+scripts/gate.sh backend          # Ruff, mypy, import-linter, pytest (cobertura ≥ 85 %) y probes de guardas
+scripts/gate.sh frontend         # vp check, dependency-cruiser, knip, Vitest (cobertura ≥ 70 %), build, size-limit y probes
+scripts/gate.sh e2e              # Playwright + accesibilidad con axe
+scripts/gate.sh migrations       # Alembic contra PostgreSQL 17 (testcontainers, requiere Docker) + Squawk
+scripts/gate.sh changed          # el gate completo de cada módulo con cambios sin commitear
+scripts/gate.sh backend quick    # versión rápida, la que corre en el pre-commit
 ```
 
-### Frontend (desde `frontend/`)
+Antes de `scripts/gate.sh e2e`, descargá una vez el navegador de Playwright: `cd frontend && vp exec playwright install chromium`.
+
+El script usa el `vp` de `frontend/node_modules/.bin` y hace `unset NODE_ENV`. Si corrés `vp test` a mano, no exportes `NODE_ENV=production` en la shell: Vitest carga el build de producción de React y los tests fallan con `React.act is not a function`.
+
+Los comandos sueltos de cada módulo están en [`backend/CLAUDE.md`](backend/CLAUDE.md#1-comandos-desde-backend) y [`frontend/CLAUDE.md`](frontend/CLAUDE.md#1-comandos-desde-frontend).
+
+### Hooks de git (lefthook y gitleaks)
 
 ```bash
-vp lint                          # Oxlint + type-check
-vp fmt --check                   # Oxfmt (sin --check, formatea)
-vp check                         # formato + lint + type-check en un solo paso
-vp test run                      # tests unitarios (Vitest + React Testing Library)
-vp exec playwright install chromium   # una sola vez: descarga el navegador de Playwright
-vp run e2e                       # tests e2e (levanta vp dev y mockea /api/health)
+brew install lefthook gitleaks   # o: uv tool install lefthook
+lefthook install                 # en la raíz: instala pre-commit y commit-msg desde lefthook.yml
 ```
 
-No exportes `NODE_ENV=production` en la shell al correr los tests: Vitest carga el build de producción de React y fallan con `React.act is not a function`.
+- `pre-commit` corre `scripts/gate.sh <módulo> quick` para cada módulo con archivos stageados (y re-stagea lo que formatea), bloquea los commits que cambian `frontend/src/api/generated/` sin `backend/openapi.json` y busca secretos con gitleaks. Si `gitleaks` no está instalado, el commit falla.
+- `commit-msg` exige Conventional Commits: `<tipo>(<scope>)?: <descripción>`, con tipo en `feat|fix|chore|docs|refactor|test|perf|ci|build` y primera línea de hasta 72 caracteres. Ejemplo: `feat(backend): agrega Clock inyectable`.
+
+No uses `--no-verify`: CI corre los mismos gates en modo completo.
+
+### Hooks de Claude Code y Octo
+
+`.claude/settings.json` está versionado y se activa solo al abrir el repo con Claude Code (necesita `jq`):
+
+- `PreToolUse` bloquea la edición de archivos generados o protegidos (`frontend/src/api/generated/`, `backend/openapi.json`, `.env*`, los lockfiles) e indica el comando que los regenera.
+- `PostToolUse` formatea y lintea cada archivo `.py`, `.ts` o `.tsx` que edita el agente.
+- `Stop` corre `scripts/gate.sh changed full` antes de que el agente termine el turno; si falla, el agente recibe la salida y sigue trabajando.
+
+El hook de Octo (`.octo/hooks/code-validate-improve.json`) corre `scripts/gate.sh branch full` al cerrar cada wave.
 
 ### Regenerar el cliente de la API
 
@@ -175,7 +202,67 @@ cd backend && uv run python -m app.scripts.export_openapi    # actualiza backend
 cd ../frontend && vp run generate:api                        # regenera src/api/generated/
 ```
 
-Commiteá juntos `backend/openapi.json` y `frontend/src/api/generated/`. El detalle está en [`CLAUDE.md`](CLAUDE.md#5-acceso-al-backend-solo-vía-orval).
+Commiteá juntos `backend/openapi.json` y `frontend/src/api/generated/`. El detalle está en [`frontend/CLAUDE.md`](frontend/CLAUDE.md#flujo-para-cambiar-el-contrato).
+
+### CI (GitHub Actions)
+
+`.github/workflows/ci.yml` corre en cada PR contra `main` y en cada push a `main`. Los jobs `backend`, `frontend`, `e2e` y `migrations` se omiten si el PR no toca su módulo; `security` (gitleaks sobre los commits del PR y `scripts/audit.py`) y `workflow-lint` (actionlint y zizmor) corren siempre. El job `ci-ok` agrega los resultados y es el único check que exige el ruleset.
+
+#### Secret `MARKET_LIBS_TOKEN`
+
+Los jobs `backend` y `migrations` instalan `market-libs` por HTTPS con el secret `MARKET_LIBS_TOKEN`. Sin él, fallan con `Falta el secret MARKET_LIBS_TOKEN`. Para crearlo:
+
+1. En GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens**, generá un token con *Resource owner* `gravity-quant`, acceso solo al repositorio `market-libs`, permiso **Contents: Read-only** y vencimiento de 90 días. Si la organización exige aprobación de tokens, un admin de `gravity-quant` tiene que aprobarlo.
+2. Guardalo como secret de Actions del repo:
+
+   ```bash
+   gh secret set MARKET_LIBS_TOKEN    # pegá el token cuando lo pida
+   ```
+
+3. Agendá la rotación antes del vencimiento: cuando el token vence, los jobs `backend` y `migrations` fallan en `uv sync`.
+
+Como mejora, el token se puede reemplazar por una GitHub App de la organización con permiso `Contents: Read` sobre `market-libs` (`actions/create-github-app-token` con los secrets `MARKET_LIBS_APP_ID` y `MARKET_LIBS_APP_KEY`), que no depende de una cuenta personal. Requiere un admin de `gravity-quant` y cambiar el paso «Acceso a market-libs» de `ci.yml`.
+
+#### Ruleset de `main`
+
+`.github/rulesets/main.json` define la protección de `main`:
+
+- todo cambio entra por PR, con los hilos de revisión resueltos (hoy sin aprobaciones obligatorias, porque hay un solo mantenedor);
+- el check `ci-ok` es obligatorio y la rama tiene que estar actualizada con `main`;
+- sin force-push ni borrado de la rama.
+
+Se aplica una vez, con permisos de admin sobre el repo:
+
+```bash
+gh api repos/{owner}/{repo}/rulesets -X POST --input .github/rulesets/main.json
+```
+
+`gh` reemplaza `{owner}` y `{repo}` con los del repo actual. Queda visible en Settings → Rules → Rulesets. Para cambiarlo después, editá el JSON y usá `gh api repos/{owner}/{repo}/rulesets/<id> -X PUT --input .github/rulesets/main.json` (el `<id>` sale de `gh api repos/{owner}/{repo}/rulesets`).
+
+#### Auditoría de dependencias
+
+`scripts/audit.py` corre pip-audit sobre el `uv.lock` exportado (sin las fuentes git de `market-libs`) y OSV-Scanner sobre `frontend/pnpm-lock.yaml`. Falla ante cualquier vulnerabilidad que no esté en `security-allowlist.toml`. Cada entrada de la allowlist lleva `id`, `ecosystem`, `package`, `reason` y `expires` (por convención, como máximo 90 días desde que se agrega); una entrada vencida o incompleta también hace fallar el job.
+
+```bash
+brew install osv-scanner
+python3 scripts/audit.py         # si python3 es < 3.11, se re-ejecuta solo con uv
+```
+
+### Renovate
+
+`renovate.json` configura las actualizaciones automáticas de dependencias. Para activarlo, un admin instala la [app de Renovate](https://github.com/apps/renovate) con acceso a `matriz-trader` y a `gravity-quant/market-libs`; sin acceso a `market-libs`, Renovate no puede seguir los tags de las librerías internas.
+
+- Espera 7 días desde la publicación de una versión antes de proponerla (`minimumReleaseAge`).
+- Agrupa los PRs en `backend`, `frontend`, `github-actions` (actualiza los SHA de las acciones fijadas), `vite-plus` (`vite-plus` junto con `@vitest/coverage-v8`, que tiene que usar el mismo Vitest) y `market-libs` (tags `market-data-client-vX.Y.Z` y `matriz-client-vX.Y.Z`, sin espera).
+- Las versiones y los SHA-256 de los binarios que descarga `ci.yml` (actionlint, gitleaks, OSV-Scanner, en el bloque `env`) no los actualiza Renovate: se suben a mano.
+
+Para validar un cambio en `renovate.json`:
+
+```bash
+npx --yes --package renovate -- renovate-config-validator renovate.json
+```
+
+La versión actual del validador requiere Node ≥ 24; con Node 22, `npx` resuelve una versión anterior que también sirve.
 
 ## Troubleshooting de SSH
 

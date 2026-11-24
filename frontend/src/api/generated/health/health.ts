@@ -20,7 +20,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  HealthResponse
+  HealthResponse,
+  ProblemDetails
 } from '../model';
 
 import { customFetch } from '../../mutator.ts';
@@ -51,12 +52,44 @@ export type getHealthResponse200 = {
   status: 200
 }
 
+export type getHealthResponse404ApplicationJson = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type getHealthResponse404ApplicationProblemJson = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type getHealthResponse422ApplicationJson = {
+  data: ProblemDetails
+  status: 422
+}
+
+export type getHealthResponse422ApplicationProblemJson = {
+  data: ProblemDetails
+  status: 422
+}
+
+export type getHealthResponse500ApplicationJson = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type getHealthResponse500ApplicationProblemJson = {
+  data: ProblemDetails
+  status: 500
+}
+
 export type getHealthResponseSuccess = (getHealthResponse200) & {
   headers: Headers;
 };
-;
+export type getHealthResponseError = (getHealthResponse404ApplicationJson | getHealthResponse404ApplicationProblemJson | getHealthResponse422ApplicationJson | getHealthResponse422ApplicationProblemJson | getHealthResponse500ApplicationJson | getHealthResponse500ApplicationProblemJson) & {
+  headers: Headers;
+};
 
-export type getHealthResponse = (getHealthResponseSuccess)
+export type getHealthResponse = (getHealthResponseSuccess | getHealthResponseError)
 
 export const getGetHealthUrl = () => {
 
@@ -92,7 +125,7 @@ export const getGetHealthQueryKey = () => {
     }
 
 
-export const getGetHealthQueryOptions = <TData = Awaited<ReturnType<typeof getHealth>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getGetHealthQueryOptions = <TData = Awaited<ReturnType<typeof getHealth>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -111,14 +144,14 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetHealthQueryResult = NonNullable<Awaited<ReturnType<typeof getHealth>>>
-export type GetHealthQueryError = ErrorType<unknown>
+export type GetHealthQueryError = ErrorType<ProblemDetails>
 
 
 /**
  * Devuelve el estado del servicio.
  * @summary Get Health
  */
-export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = ErrorType<unknown>>(
+export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getHealth>>,
@@ -132,7 +165,7 @@ export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TErr
  * Devuelve el estado del servicio.
  * @summary Get Health
  */
-export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = ErrorType<unknown>>(
+export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getHealth>>,
@@ -146,7 +179,7 @@ export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TErr
  * Devuelve el estado del servicio.
  * @summary Get Health
  */
-export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = ErrorType<unknown>>(
+export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -154,7 +187,7 @@ export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TErr
  * Devuelve el estado del servicio.
  * @summary Get Health
  */
-export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = ErrorType<unknown>>(
+export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {

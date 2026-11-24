@@ -12,6 +12,8 @@ export default defineConfig({
       target: "src/api/generated",
       schemas: "src/api/generated/model",
       clean: true,
+      // Genera `<tag>/<tag>.msw.ts` con handlers de MSW para los tests unitarios (frontend/CLAUDE.md, tests).
+      mock: true,
       override: {
         mutator: { path: "src/api/mutator.ts", name: "customFetch" },
       },
