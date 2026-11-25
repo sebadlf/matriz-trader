@@ -19,3 +19,17 @@ class MarketDataUnavailableError(DomainError):
 
     status: ClassVar[int] = 502
     title: ClassVar[str] = "Market data no disponible"
+
+
+class InstrumentNotFoundError(DomainError):
+    """Matriz no devolvió un instrumento con ese `symbol` y `market_id` (AC-6)."""
+
+    status: ClassVar[int] = 404
+    title: ClassVar[str] = "Instrumento no encontrado"
+
+
+class UnclassifiedInstrumentError(DomainError):
+    """El instrumento existe pero su `cficode` es `None` o no está en la tabla (AC-5)."""
+
+    status: ClassVar[int] = 422
+    title: ClassVar[str] = "Tipo de instrumento desconocido"

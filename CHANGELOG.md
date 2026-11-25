@@ -7,6 +7,16 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-25
+
+### Added
+
+- `InstrumentType` (`backend/app/domain/utils_instrument.py`): enum con nombres estables para el tipo de instrumento (`ACCION`, `CEDEAR`, `BONO`, `OBLIGACION_NEGOCIABLE`, `LETRA`, `FUTURO`, `OPCION_SOBRE_ACCION`, `OPCION_SOBRE_FUTURO`), resuelto a partir del código CFI (ISO 10962) por igualdad exacta: `ESXXXX`, `EMXXXX`, `DBXXXX`, `DBXXFR`, `DYXTXR`, `FXXXSX`, `OCASPS`/`OPASPS` y `OCAFXS`/`OPAFXS`.
+- `should_divide_price_by_100(instrument_type)`: regla pura que devuelve `True` para `BONO`, `OBLIGACION_NEGOCIABLE` y `LETRA`, y `False` para el resto. Usa un `match` exhaustivo con `assert_never`, así que un miembro nuevo del enum sin regla hace fallar mypy.
+- `get_instrument_type(source, symbol, market_id="ROFX")` (`backend/app/services/utils_instrument.py`): consulta un solo instrumento con `get_instrument_detail` de `matriz-client`, lo clasifica y guarda el tipo en memoria 10 minutos, medidos con el `Clock` inyectable. Solo cachea resoluciones exitosas.
+- Errores de dominio `InstrumentNotFoundError` (`404`), si Matriz devuelve un detalle cuyo símbolo o mercado no coincide exactamente, y `UnclassifiedInstrumentError` (`422`), si el `cficode` es `null` o no está en la tabla; este último registra además el log `instrument_type_unclassified` con `symbol`, `market_id` y `cficode`. Nunca se devuelve un tipo «desconocido».
+- Las excepciones de `matriz-client` y de red se propagan sin traducir.
+
 ## [0.4.0] - 2026-11-24
 
 ### Added

@@ -1,0 +1,11 @@
+{
+  "id": "quiero-generar-un-nuevo-utils-llamado-utils-instrument",
+  "name": "Quiero generar un nuevo utils llamado utils_instrument",
+  "kind": "feature",
+  "phase": "done",
+  "path": "/Users/sebadlf/development/matriz-trader/.octo/specs/quiero-generar-un-nuevo-utils-llamado-utils-instrument",
+  "createdAt": "2026-11-25T12:05:55.451Z",
+  "updatedAt": "2026-11-25T13:21:13.018Z",
+  "brief": "Quiero generar un nuevo utils llamado utils_instrument.py que contenga las funciones get_instrument_type y should_divide_price_by_100.  Usando get_instruments_details como base quiero generar una funcion get_instrument_type que devuelva el tipo del instumento pasado como parametro.  El tipo de retorno debe ser un enum para que pueda ser usado facilmente luego para ser pasado como parametro a otras funciones.  Luego quiero generar una funcion should_divide_price_by_100. Esta debe tomar como parametro el tipo de retorno de get_instrument_type y devolver True si debe ser dividido o False si no debe hacerlo.",
+  "branch": "feat/quiero-generar-un-nuevo-utils-llamado-utils-instrument"
+}
